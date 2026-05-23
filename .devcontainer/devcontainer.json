@@ -1,0 +1,12 @@
+{
+  "name": "Rewind",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "extensions": [
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "charliermarsh.ruff",
+    "esbenp.prettier-vscode"
+  ]
+}

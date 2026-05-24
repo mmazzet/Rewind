@@ -4,19 +4,21 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - .:/workspace
     env_file:
       - ./backend/.env
     depends_on:
       - db
+    working_dir: /workspace/backend
 
   frontend:
     build: ./frontend
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app
+      - .:/workspace
       - /app/node_modules
+    working_dir: /workspace/frontend
 
   db:
     image: postgres:16

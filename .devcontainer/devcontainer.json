@@ -2,7 +2,8 @@
   "name": "Rewind",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "backend",
-  "workspaceFolder": "/app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [8000, 5173, 5432],
   "extensions": [
     "ms-python.python",
     "ms-python.black-formatter",

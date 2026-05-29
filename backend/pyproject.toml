@@ -24,3 +24,17 @@ dependencies = [
 dev = [
     "pre-commit>=4.6.0",
 ]
+
+[tool.ruff]
+exclude = ["alembic/", "migrations/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.black]
+exclude = '''
+/(
+    alembic
+  | migrations
+)/
+'''

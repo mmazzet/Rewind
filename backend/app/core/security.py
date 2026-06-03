@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Cookie, HTTPException, Response
@@ -42,3 +43,22 @@ def get_user_id_from_cookie(access_token: str = Cookie(default=None)) -> int:
     except JWTError:
         logger.warning("Invalid or expired JWT token")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+def generate_csrf_token() -> str:
+    return secrets.token_hex(32)
+
+
+def set_csrf_cookie(response: Response, csrf_token: str) -> None:
+    response.set_cookie(
+        key="csrf_token",
+        value=csrf_token,
+        httponly=False,  # JavaScript must be able to read this
+        secure=settings.env == "production",
+        samesite="lax",
+        max_age=settings.jwt_expiry_days * 24 * 60 * 60,
+    )
+
+
+def clear_csrf_cookie(response: Response) -> None:
+    response.delete_cookie(key="csrf_token")

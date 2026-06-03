@@ -1,20 +1,9 @@
-import { useEffect, useState } from "react"
-
 function App() {
-  const [status, setStatus] = useState<string>("loading...")
-
-  useEffect(() => {
-    fetch("http://localhost:8000/health")
-      .then((res) => res.json())
-      .then((data) => {
-        setStatus(data.status)
-      })
-      .catch((err) => {
-        setStatus("error")
-      })
-  }, [])
-
-  return <div>Backend status: {status}</div>
+  return (
+    <div className="p-8">
+      <h1 className="text-3xl font-bold text-blue-600">Tailwind works</h1>
+    </div>
+  )
 }
 
 export default App

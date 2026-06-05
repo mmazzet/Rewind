@@ -22,10 +22,10 @@ function RegisterPage() {
       setUser(user)
       navigate('/')
     } catch {
-      setError('Registration failed. That email may already be in use.')
+      setError('Registration failed. Please try again.')
     } finally {
       setLoading(false)
-    }
+    }   
   }
 
   return (

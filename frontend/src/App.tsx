@@ -1,9 +1,70 @@
-function App() {
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "@/features/auth/components/LoginPage";
+import RegisterPage from "@/features/auth/components/RegisterPage";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { authApi } from "@/features/auth/api/authApi";
+import useAuthStore from "@/store/authStore";
+
+function HomePage() {
+  const setUser = useAuthStore((state) => state.setUser);
+  const user = useAuthStore((state) => state.user);
+
+  const handleLogout = async () => {
+    await authApi.logout();
+    setUser(null);
+  };
+
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold text-blue-600">Tailwind works</h1>
+      <p className="mb-4">Logged in as: {user?.email}</p>
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+      >
+        Log out
+      </button>
     </div>
-  )
+  );
 }
 
-export default App
+function App() {
+  const setUser = useAuthStore((state) => state.setUser);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    authApi
+      .me()
+      .then((user) => {
+        setUser(user);
+      })
+      .catch(() => {
+        setUser(null);
+      })
+      .finally(() => {
+        setAuthChecked(true);
+      });
+  }, [setUser]);
+
+  if (!authChecked) return null;
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;

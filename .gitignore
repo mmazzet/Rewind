@@ -3,3 +3,4 @@ docs-rewind.md
 my-notes-rewind.md
 backend/.env
 .github/
+node_modules/

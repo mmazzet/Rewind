@@ -17,7 +17,7 @@ services:
       - "5173:5173"
     volumes:
       - .:/workspace
-      - /app/node_modules
+      - /workspace/frontend/node_modules
     working_dir: /workspace/frontend
 
   db:

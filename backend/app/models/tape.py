@@ -1,13 +1,21 @@
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
 
 
-class TapeStatus(enum.Enum):
+class CassetteStyle(str, enum.Enum):
+    classic = "classic"
+    chrome = "chrome"
+    metal = "metal"
+    vintage = "vintage"
+
+
+class TapeStatus(str, enum.Enum):
     draft = "draft"
     ready = "ready"
     sent = "sent"
@@ -23,7 +31,7 @@ class Tape(Base):
     cassette_style: Mapped[str] = mapped_column(String(50), nullable=False)
     length_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[TapeStatus] = mapped_column(
-        Enum(TapeStatus), default=TapeStatus.draft, nullable=False
+        SAEnum(TapeStatus), default=TapeStatus.draft, nullable=False
     )
     sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     recipient_id: Mapped[int | None] = mapped_column(

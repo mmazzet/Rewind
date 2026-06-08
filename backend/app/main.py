@@ -31,13 +31,16 @@ async def csrf_middleware(request: Request, call_next):
         request.method in state_changing_methods
         and request.url.path not in exempt_paths
     ):
-        csrf_cookie = request.cookies.get("csrf_token")
-        csrf_header = request.headers.get("X-CSRF-Token")
+        # Only check CSRF if the user is authenticated (has access_token cookie)
+        access_token = request.cookies.get("access_token")
+        if access_token:
+            csrf_cookie = request.cookies.get("csrf_token")
+            csrf_header = request.headers.get("X-CSRF-Token")
 
-        if not csrf_cookie or csrf_cookie != csrf_header:
-            return JSONResponse(
-                status_code=403, content={"error": "CSRF validation failed"}
-            )
+            if not csrf_cookie or csrf_cookie != csrf_header:
+                return JSONResponse(
+                    status_code=403, content={"error": "CSRF validation failed"}
+                )
 
     return await call_next(request)
 

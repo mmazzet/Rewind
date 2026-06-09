@@ -15,7 +15,7 @@ class CreateTapeRequest(BaseModel):
 class TapeResponse(BaseModel):
     id: int
     title: str
-    cassette_style: str
+    cassette_style: CassetteStyle
     length_minutes: int
     status: TapeStatus
     sender_id: int

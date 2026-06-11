@@ -2,12 +2,14 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.routers import auth, tapes
+from app.routers import auth, spotify, tapes
 
 app = FastAPI()
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(tapes.router, prefix="/api/v1")
+app.include_router(spotify.router, prefix="/api/v1")
+
 
 app.add_middleware(
     CORSMiddleware,

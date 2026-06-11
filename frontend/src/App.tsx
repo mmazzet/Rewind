@@ -6,6 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { authApi } from "@/features/auth/api/authApi";
 import useAuthStore from "@/store/authStore";
 import { CreateTapePage } from "@/features/tapes/components/CreateTapePage";
+import { TapeBuilderPage } from "@/features/tapes/components/TapeBuilderPage";
 
 function HomePage() {
   const setUser = useAuthStore((state) => state.setUser);
@@ -67,6 +68,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateTapePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tapes/:tapeId"
+          element={
+            <ProtectedRoute>
+              <TapeBuilderPage />
             </ProtectedRoute>
           }
         />

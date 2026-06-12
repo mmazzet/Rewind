@@ -9,8 +9,8 @@ router = APIRouter(prefix="/spotify", tags=["spotify"])
 
 @router.get("/search", response_model=SpotifySearchResponse)
 async def search_tracks(
-    q: str = Query(..., max_length=100),
-    current_user=Depends(get_user_id_from_cookie),
+    q: str = Query(..., min_length=1, max_length=100),
+    _user_id: int = Depends(get_user_id_from_cookie),
 ):
     tracks = await spotify_service.search_tracks(q)
     return SpotifySearchResponse(tracks=tracks)

@@ -26,7 +26,12 @@ class SpotifyService:
                 logger.debug("Using cached Spotify token (after lock)")
                 return self._token
 
-            client_id, client_secret = require_spotify_credentials()
+            try:
+                client_id, client_secret = require_spotify_credentials()
+            except ValueError:
+                raise HTTPException(
+                    status_code=503, detail="Spotify integration not configured"
+                )
 
             logger.info("Fetching new Spotify app token")
             async with httpx.AsyncClient() as client:
@@ -43,10 +48,17 @@ class SpotifyService:
                         status_code=502, detail="Spotify authentication failed"
                     )
 
-            data = response.json()
-            self._token = data["access_token"]
+            try:
+                data = response.json()
+                self._token = data["access_token"]
+                expires_in = int(data["expires_in"])
+            except (ValueError, KeyError, TypeError) as e:
+                logger.error("Unexpected Spotify token response: {}", str(e))
+                raise HTTPException(
+                    status_code=502, detail="Spotify authentication failed"
+                )
             self._token_expires_at = datetime.now(timezone.utc) + timedelta(
-                seconds=max(data["expires_in"] - 60, 0)
+                seconds=max(expires_in - 60, 0)
             )
             logger.info("Spotify token fetched and cached")
             return self._token
@@ -54,7 +66,7 @@ class SpotifyService:
     async def search_tracks(self, query: str) -> list[dict]:
         token = await self._get_app_token()
 
-        logger.info("Searching Spotify for: {}", query)
+        logger.debug("Searching Spotify for: {}", query)
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(
@@ -69,9 +81,14 @@ class SpotifyService:
                     status_code=502, detail="Spotify search unavailable"
                 )
 
-        data = response.json()
+        try:
+            data = response.json()
+            items = data["tracks"]["items"]
+        except (ValueError, KeyError, TypeError) as e:
+            logger.error("Unexpected Spotify search response: {}", str(e))
+            raise HTTPException(status_code=502, detail="Spotify search unavailable")
         tracks = []
-        for item in data["tracks"]["items"]:
+        for item in items:
             tracks.append(
                 {
                     "spotify_track_id": item["id"],

@@ -1,15 +1,18 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 import httpx
+from fastapi import HTTPException
 from loguru import logger
 
-from app.core.config import settings
+from app.core.config import require_spotify_credentials
 
 
 class SpotifyService:
     def __init__(self):
         self._token: str | None = None
         self._token_expires_at: datetime | None = None
+        self._lock = asyncio.Lock()
 
     async def _get_app_token(self) -> str:
         now = datetime.now(timezone.utc)
@@ -17,36 +20,56 @@ class SpotifyService:
             logger.debug("Using cached Spotify token")
             return self._token
 
-        logger.info("Fetching new Spotify app token")
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "https://accounts.spotify.com/api/token",
-                data={"grant_type": "client_credentials"},
-                auth=(settings.spotify_client_id, settings.spotify_client_secret),
-            )
-            response.raise_for_status()
-            data = response.json()
+        async with self._lock:
+            now = datetime.now(timezone.utc)
+            if self._token and self._token_expires_at and now < self._token_expires_at:
+                logger.debug("Using cached Spotify token (after lock)")
+                return self._token
 
-        self._token = data["access_token"]
-        self._token_expires_at = datetime.now(timezone.utc) + timedelta(
-            seconds=data["expires_in"] - 60
-        )
-        logger.info("Spotify token fetched and cached")
-        return self._token
+            client_id, client_secret = require_spotify_credentials()
+
+            logger.info("Fetching new Spotify app token")
+            async with httpx.AsyncClient() as client:
+                try:
+                    response = await client.post(
+                        "https://accounts.spotify.com/api/token",
+                        data={"grant_type": "client_credentials"},
+                        auth=(client_id, client_secret),
+                    )
+                    response.raise_for_status()
+                except httpx.HTTPError as e:
+                    logger.error("Failed to fetch Spotify app token: {}", str(e))
+                    raise HTTPException(
+                        status_code=502, detail="Spotify authentication failed"
+                    )
+
+            data = response.json()
+            self._token = data["access_token"]
+            self._token_expires_at = datetime.now(timezone.utc) + timedelta(
+                seconds=max(data["expires_in"] - 60, 0)
+            )
+            logger.info("Spotify token fetched and cached")
+            return self._token
 
     async def search_tracks(self, query: str) -> list[dict]:
         token = await self._get_app_token()
 
-        logger.info(f"Searching Spotify for: {query}")
+        logger.info("Searching Spotify for: {}", query)
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://api.spotify.com/v1/search",
-                params={"q": query, "type": "track", "limit": 10},
-                headers={"Authorization": f"Bearer {token}"},
-            )
-            response.raise_for_status()
-            data = response.json()
+            try:
+                response = await client.get(
+                    "https://api.spotify.com/v1/search",
+                    params={"q": query, "type": "track", "limit": 10},
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                response.raise_for_status()
+            except httpx.HTTPError as e:
+                logger.error("Spotify search failed: {}", str(e))
+                raise HTTPException(
+                    status_code=502, detail="Spotify search unavailable"
+                )
 
+        data = response.json()
         tracks = []
         for item in data["tracks"]["items"]:
             tracks.append(
@@ -60,8 +83,7 @@ class SpotifyService:
                 }
             )
 
-        # DEBUG
-        print(f"Found {len(tracks)} tracks for query: {query}")
+        logger.debug("Found {} tracks for query: {}", len(tracks), query)
         return tracks
 
 

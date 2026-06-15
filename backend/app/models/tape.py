@@ -1,11 +1,15 @@
 import enum
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+
+if TYPE_CHECKING:
+    from app.models.track import Track
 
 
 class CassetteStyle(str, enum.Enum):
@@ -54,3 +58,4 @@ class Tape(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    tracks: Mapped[list["Track"]] = relationship("Track", back_populates="tape")

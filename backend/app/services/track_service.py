@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.tape import TapeStatus
 from app.models.track import Track, TrackSide
 from app.repositories.tape_repository import TapeRepository
 from app.repositories.track_repository import TrackRepository
@@ -27,6 +28,9 @@ async def add_track(
 
     if tape.sender_id != user_id:
         raise HTTPException(status_code=403, detail="Not authorised")
+
+    if tape.status != TapeStatus.draft:
+        raise HTTPException(status_code=409, detail="Tape is not in draft status")
 
     side_limit_seconds = (tape.length_minutes // 2) * 60
     current_duration = await track_repository.get_side_duration(tape_id, side)
@@ -61,5 +65,8 @@ async def remove_track(
 
     if tape.sender_id != user_id:
         raise HTTPException(status_code=403, detail="Not authorised")
+
+    if tape.status != TapeStatus.draft:
+        raise HTTPException(status_code=409, detail="Tape is not in draft status")
 
     await track_repository.delete_track(track_id)

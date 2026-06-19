@@ -6,6 +6,7 @@ from sqlalchemy.pool import NullPool
 
 from app.db.session import Base, get_db
 from app.main import app
+from app.services.spotify_service import spotify_service
 
 TEST_DATABASE_URL = "postgresql+asyncpg://rewind:rewind@db:5432/rewind_test"
 
@@ -44,3 +45,29 @@ async def client():
         yield ac
 
     app.dependency_overrides.clear()
+
+
+class FakeSpotifyClient:
+    async def search(self, query: str) -> dict:
+        return {
+            "tracks": {
+                "items": [
+                    {
+                        "id": "mock_1",
+                        "name": f"Mock result for {query}",
+                        "artists": [{"name": "Mock Artist"}],
+                        "album": {"name": "Mock Album"},
+                        "duration_ms": 200000,
+                        "preview_url": None,
+                    }
+                ]
+            }
+        }
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def fake_spotify_client():
+    real_client = spotify_service.client
+    spotify_service.client = FakeSpotifyClient()
+    yield
+    spotify_service.client = real_client

@@ -52,6 +52,7 @@ A user adds a song and watches its title appear on the cassette label in real ti
 ## Tech stack
 
 **Backend**
+
 - Python, FastAPI
 - Layered architecture: router, service, repository
 - PostgreSQL with SQLAlchemy ORM
@@ -62,6 +63,7 @@ A user adds a song and watches its title appear on the cassette label in real ti
 - Routes prefixed with `/api/v1/`
 
 **Frontend**
+
 - React, TypeScript, Tailwind CSS
 - Cassette visuals built in pure CSS (no images)
 - Google Fonts for label typography
@@ -69,10 +71,12 @@ A user adds a song and watches its title appear on the cassette label in real ti
 - Label updates are React state only — no polling or WebSockets.
 
 **Integrations**
+
 - Spotify Web API: track search and duration lookup via Client Credentials (no user login required); playlist creation via OAuth 2.0 (optional, sender only)
 - Resend: transactional email (free tier)
 
 **Tooling**
+
 - Black and Ruff for Python formatting and linting
 - Prettier for TypeScript/React formatting
 - pre-commit hooks: runs Black, Ruff, and Prettier before every commit
@@ -81,6 +85,7 @@ A user adds a song and watches its title appear on the cassette label in real ti
 - python-dotenv for environment variables, `.env.example` in repo
 
 **Deployment (free tier)**
+
 - Backend: Railway or Render
 - Frontend: Vercel
 
@@ -89,9 +94,11 @@ A user adds a song and watches its title appear on the cassette label in real ti
 ## Data models
 
 **User**
+
 - id, email, password_hash, created_at, updated_at
 
 **Tape**
+
 - id, title, cassette_style, length_minutes (60 or 90)
 - status (draft, ready, sent, claimed, archived)
 - sender_id (FK: User), recipient_id (FK: User, nullable)
@@ -100,10 +107,13 @@ A user adds a song and watches its title appear on the cassette label in real ti
 - sent_at, created_at
 
 **Track**
+
 - id, tape_id (FK: Tape), spotify_track_id, title, artist, duration_seconds, side (A or B), position
 
 **Spotify Token**
+
 - spotify_access_token, spotify_refresh_token (nullable, set after OAuth)
+
 ---
 
 ## Constraints and rules
@@ -152,5 +162,5 @@ TDD where practical. Tests written alongside code.
 ## Open questions
 
 - Side A / Side B split: fixed 50/50 or user-controlled? Decide during build.
-- Spotify API app approval: dev mode supports 25 users. A SPOTIFY_MOCK flag returns fake results in tests and CI. Production calls the real API. Spotify review needed for public use beyond 25 users.
-- App name: Rewind or B-Side. Decide before first commit.
+- Spotify API dev mode supports 25 users. This app won't exceed that, so no API review is needed. Tests use a FakeSpotifyClient injected via dependency injection (see architecture.md), not an env flag.
+- App name: Rewind

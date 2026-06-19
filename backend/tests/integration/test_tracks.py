@@ -11,10 +11,8 @@ from tests.integration.test_tapes import create_tape, register_and_login
 
 async def test_add_track_success(client: AsyncClient):
     await register_and_login(client)
-    print("# DEBUG logged in")  # DEBUG
 
     tape = await create_tape(client)
-    print("# DEBUG created tape:", tape)  # DEBUG
 
     response = await client.post(
         f"/api/v1/tapes/{tape['id']}/tracks",
@@ -27,8 +25,6 @@ async def test_add_track_success(client: AsyncClient):
             "position": 1,
         },
     )
-    print("# DEBUG status code:", response.status_code)  # DEBUG
-    print("# DEBUG response json:", response.json())  # DEBUG
 
     assert response.status_code == 201
     data = response.json()
@@ -40,17 +36,14 @@ async def test_add_track_success(client: AsyncClient):
 async def test_add_track_tape_not_draft(client: AsyncClient):
     await register_and_login(client)
     tape = await create_tape(client)
-    print("# DEBUG tape before status change:", tape)  # DEBUG
 
     # Force the tape out of draft status directly in the database,
     # since PATCH /ready does not exist yet.
     async with TestSessionLocal() as session:
         result = await session.execute(select(Tape).where(Tape.id == tape["id"]))
         tape_row = result.scalar_one()
-        print("# DEBUG tape status before:", tape_row.status)  # DEBUG
         tape_row.status = TapeStatus.sent
         await session.commit()
-        print("# DEBUG tape status after:", tape_row.status)  # DEBUG
 
     response = await client.post(
         f"/api/v1/tapes/{tape['id']}/tracks",
@@ -63,8 +56,6 @@ async def test_add_track_tape_not_draft(client: AsyncClient):
             "position": 1,
         },
     )
-    print("# DEBUG status code:", response.status_code)  # DEBUG
-    print("# DEBUG response json:", response.json())  # DEBUG
 
     assert response.status_code == 409
 

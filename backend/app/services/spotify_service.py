@@ -8,7 +8,7 @@ from loguru import logger
 from app.core.config import require_spotify_credentials
 
 
-class SpotifyService:
+class SpotifyClient:
     def __init__(self):
         self._token: str | None = None
         self._token_expires_at: datetime | None = None
@@ -63,7 +63,7 @@ class SpotifyService:
             logger.info("Spotify token fetched and cached")
             return self._token
 
-    async def search_tracks(self, query: str) -> list[dict]:
+    async def search(self, query: str) -> dict:
         token = await self._get_app_token()
 
         logger.debug("Searching Spotify for: {}", query)
@@ -81,12 +81,22 @@ class SpotifyService:
                     status_code=502, detail="Spotify search unavailable"
                 )
 
+        return response.json()
+
+
+class SpotifyService:
+    def __init__(self, client: SpotifyClient):
+        self.client = client
+
+    async def search_tracks(self, query: str) -> list[dict]:
+        data = await self.client.search(query)
+
         try:
-            data = response.json()
             items = data["tracks"]["items"]
-        except (ValueError, KeyError, TypeError) as e:
+        except (KeyError, TypeError) as e:
             logger.error("Unexpected Spotify search response: {}", str(e))
             raise HTTPException(status_code=502, detail="Spotify search unavailable")
+
         tracks = []
         for item in items:
             tracks.append(
@@ -104,4 +114,4 @@ class SpotifyService:
         return tracks
 
 
-spotify_service = SpotifyService()
+spotify_service = SpotifyService(client=SpotifyClient())

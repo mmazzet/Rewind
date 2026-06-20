@@ -20,14 +20,14 @@ Rewind is a full-stack web app. Users build virtual cassette tapes, fill them wi
 
 ## System components
 
-| Component | Technology | Host |
-|---|---|---|
-| Frontend | React, TypeScript, Tailwind, Zustand | Vercel |
-| Backend API | Python, FastAPI, nginx | Digital Ocean Droplet |
-| Database | PostgreSQL | Digital Ocean Managed DB |
-| Email | Resend | SaaS (free tier) |
-| Spotify | Spotify Web API | SaaS |
-| Observability | Sentry, Prometheus, Grafana | Docker (local); DO (prod) |
+| Component     | Technology                           | Host                      |
+| ------------- | ------------------------------------ | ------------------------- |
+| Frontend      | React, TypeScript, Tailwind, Zustand | Vercel                    |
+| Backend API   | Python, FastAPI, nginx               | Digital Ocean Droplet     |
+| Database      | PostgreSQL                           | Digital Ocean Managed DB  |
+| Email         | Resend                               | SaaS (free tier)          |
+| Spotify       | Spotify Web API                      | SaaS                      |
+| Observability | Sentry, Prometheus, Grafana          | Docker (local); DO (prod) |
 
 ---
 
@@ -100,23 +100,26 @@ Song titles appear on the cassette label in real time using React state only. No
 ## Frontend error handling
 
 `Form errors`
+
 - Inline messages shown next to the relevant field. Returned from the API as 422 validation errors and mapped to the form field that caused them.
-`Action failures`
+  `Action failures`
 - Toast notifications for non-blocking failures: adding a track, sending a tape, exporting to Spotify. Toast disappears after 4 seconds. User can still interact with the app.
-`Navigation failures`
+  `Navigation failures`
 - Full error page for 404 (tape not found) and 403 (not authorised). Each has a message and a back button.
-`Session expiry`
+  `Session expiry`
 - Axios interceptor catches every 401 response globally. On 401, the Zustand auth store is cleared and the user is redirected to /login. Axios version 1.5.0 or higher required (security).
-`React Query retry policy`
+  `React Query retry policy`
 - Retries only on network errors or 5xx responses. Never retries on 4xx. Maximum 2 retries.
 
 retry: (failureCount, error) => {
-  if (error.status < 500) return false
-  return failureCount < 2
+if (error.status < 500) return false
+return failureCount < 2
 }
 
 `Error boundaries`
+
 - Two levels. A top-level boundary wraps the entire app and shows a generic "something went wrong" page with a reload button. A second boundary wraps the cassette builder specifically, so a crash there doesn't take down the rest of the app.
+
 ---
 
 ## Authentication
@@ -124,6 +127,7 @@ retry: (failureCount, error) => {
 JWT tokens stored in httpOnly cookies. The cookie is set by the backend on login and cleared on logout. The frontend never reads the token directly.
 
 **Flow:**
+
 1. User submits credentials to `POST /api/v1/auth/login`
 2. Backend validates, returns a JWT in a `Set-Cookie` header (httpOnly, Secure, SameSite=Lax)
 3. Every subsequent request sends the cookie automatically
@@ -138,20 +142,22 @@ JWT tokens stored in httpOnly cookies. The cookie is set by the backend on login
 Two separate flows.
 
 **Track search (no user login required)**
+
 - Backend holds a Client Credentials token (app-level)
 - Frontend sends a search query to the Rewind API
 - Backend calls Spotify, returns results
 - The Spotify token never leaves the server
 
 **Playlist export (optional, sender only)**
+
 - Sender clicks "Export to Spotify"
 - Backend redirects to Spotify OAuth consent screen
 - Spotify returns an auth code to a callback endpoint
 - Backend exchanges the code for access + refresh tokens
 - Tokens stored in the `SpotifyToken` table, linked to the user
 - Backend creates the playlist on Spotify using the stored token
-`Mock mode`
-A SPOTIFY_MOCK=true environment variable switches SpotifyService to return hardcoded fake results. Tests and CI always run in mock mode. The real Spotify API is only called when SPOTIFY_MOCK=false. This avoids API quota issues in tests and works around the 25-user dev mode limit while Spotify app approval is pending.
+  `Testing`
+  SpotifyService takes a SpotifyClient in its constructor. Production wires up the real SpotifyClient (handles token caching and Spotify HTTP calls). Tests swap in a FakeSpotifyClient that returns canned data, defined in conftest.py. This keeps tests independent of the real Spotify API without any mock-mode flag in business logic
 
 ---
 
@@ -228,15 +234,16 @@ Sentry captures exceptions automatically. Loguru and Sentry work alongside each 
 
 **Formatting and linting:**
 
-| Tool | Language | Job |
-|---|---|---|
-| Black | Python | Formatting |
-| Ruff | Python | Linting |
+| Tool     | Language         | Job        |
+| -------- | ---------------- | ---------- |
+| Black    | Python           | Formatting |
+| Ruff     | Python           | Linting    |
 | Prettier | TypeScript/React | Formatting |
 
 **Pre-commit hooks** run Black, Ruff, and Prettier automatically before every commit. A commit with formatting errors or lint violations is rejected until fixed.
 
 Setup:
+
 ```bash
 pre-commit install   # run once after cloning
 ```
@@ -266,11 +273,11 @@ A `.devcontainer/` config wraps this for VS Code Dev Containers.
 
 ## Observability
 
-| Tool | Purpose |
-|---|---|
-| Sentry | Error tracking, frontend and backend |
+| Tool       | Purpose                                               |
+| ---------- | ----------------------------------------------------- |
+| Sentry     | Error tracking, frontend and backend                  |
 | Prometheus | Metrics scraping (request count, latency, error rate) |
-| Grafana | Dashboard for Prometheus metrics |
+| Grafana    | Dashboard for Prometheus metrics                      |
 
 FastAPI is instrumented with `prometheus-fastapi-instrumentator`. Prometheus scrapes the `/metrics` endpoint. Grafana connects to Prometheus as a data source.
 
@@ -310,21 +317,21 @@ GitHub Actions runs tests on every push. Vercel and DO deploy automatically on m
 - Side A / Side B split: fixed 50/50 or user-controlled
 - Spotify API approval for public use (dev mode supports 25 users)
 
-
 ## Migration strategy
- 
+
 These rules apply whenever the schema changes.
- 
+
 **Additive changes are safest.** Adding a new column, table, or optional field leaves existing rows unaffected.
- 
+
 **Never make a column required in a migration without backfilling it first.** The safe sequence is:
+
 1. Add the column as nullable.
 2. Run a backfill migration to populate existing rows with a sensible default.
 3. Then make the column required.
-**One change per migration.** Keep Alembic migrations small and focused. A migration that does 3 things is harder to roll back and harder to debug.
- 
+   **One change per migration.** Keep Alembic migrations small and focused. A migration that does 3 things is harder to roll back and harder to debug.
+
 **Never edit a migration that has already run in production.** Always add a new migration. Editing a past migration breaks Alembic's version history.
- 
+
 **Validation rules live in code, not the database.** Password requirements, tape length limits, and similar constraints are enforced in the service layer. Changing them does not require a migration and does not affect existing rows.
- 
+
 **Test migrations on a copy of production data before running them live.** A migration that works on an empty database can fail on real data.

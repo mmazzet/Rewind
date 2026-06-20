@@ -46,3 +46,7 @@ class TrackRepository:
             .where(Track.side == side)
         )
         return result.scalar()
+
+    async def get_track_by_id(self, track_id: int) -> Track | None:
+        result = await self.db.execute(select(Track).where(Track.id == track_id))
+        return result.scalars().first()

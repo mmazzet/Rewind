@@ -254,3 +254,14 @@ async def test_remove_track_not_authenticated(client: AsyncClient):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Not authenticated"
+
+
+async def test_remove_track_not_found(client: AsyncClient):
+    await register_and_login(client)
+
+    tape = await create_tape(client)
+
+    response = await client.delete(f"/api/v1/tapes/{tape['id']}/tracks/999999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Track not found"

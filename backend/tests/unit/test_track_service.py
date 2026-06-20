@@ -155,9 +155,12 @@ async def test_remove_track_success(mock_db):
     mock_tape_repo = MagicMock()
     mock_tape_repo.get_by_id = AsyncMock(return_value=mock_tape)
 
-    mock_track_repo = MagicMock()
-    mock_track_repo.delete_track = AsyncMock()
+    mock_track = MagicMock()
+    mock_track.tape_id = 123
 
+    mock_track_repo = MagicMock()
+    mock_track_repo.get_track_by_id = AsyncMock(return_value=mock_track)
+    mock_track_repo.delete_track = AsyncMock()
     with (
         patch(
             "app.services.track_service.TapeRepository",

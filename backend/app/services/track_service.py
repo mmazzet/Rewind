@@ -69,4 +69,8 @@ async def remove_track(
     if tape.status != TapeStatus.draft:
         raise HTTPException(status_code=409, detail="Tape is not in draft status")
 
+    track = await track_repository.get_track_by_id(track_id)
+    if track is None or track.tape_id != tape_id:
+        raise HTTPException(status_code=404, detail="Track not found")
+
     await track_repository.delete_track(track_id)

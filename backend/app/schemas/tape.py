@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.models.tape import CassetteStyle, TapeStatus
+from app.schemas.track import TrackResponse
 
 
 class CreateTapeRequest(BaseModel):
@@ -19,6 +20,7 @@ class TapeResponse(BaseModel):
     length_minutes: int
     status: TapeStatus
     sender_id: int
+    tracks: list[TrackResponse] = []
     created_at: datetime
 
     model_config = {"from_attributes": True}

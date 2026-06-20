@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.tape import Tape, TapeStatus
 
@@ -24,13 +25,19 @@ class TapeRepository:
         )
         self.db.add(new_tape)
         await self.db.commit()
-        await self.db.refresh(new_tape)
-        return new_tape
+
+        return await self.get_by_id(new_tape.id)
 
     async def get_by_id(self, tape_id: int) -> Tape | None:
-        result = await self.db.execute(select(Tape).where(Tape.id == tape_id))
+        result = await self.db.execute(
+            select(Tape).where(Tape.id == tape_id).options(selectinload(Tape.tracks))
+        )
         return result.scalars().first()
 
     async def get_by_sender(self, sender_id: int) -> list[Tape]:
-        result = await self.db.execute(select(Tape).where(Tape.sender_id == sender_id))
+        result = await self.db.execute(
+            select(Tape)
+            .where(Tape.sender_id == sender_id)
+            .options(selectinload(Tape.tracks))
+        )
         return list(result.scalars().all())

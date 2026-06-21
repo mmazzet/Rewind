@@ -7,6 +7,7 @@ import { authApi } from "@/features/auth/api/authApi";
 import useAuthStore from "@/store/authStore";
 import { CreateTapePage } from "@/features/tapes/components/CreateTapePage";
 import { TapeBuilderPage } from "@/features/tapes/components/TapeBuilderPage";
+import { Toaster } from "react-hot-toast";
 
 function HomePage() {
   const setUser = useAuthStore((state) => state.setUser);
@@ -51,37 +52,40 @@ function App() {
   if (!authChecked) return null;
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tapes/create"
-          element={
-            <ProtectedRoute>
-              <CreateTapePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tapes/:tapeId"
-          element={
-            <ProtectedRoute>
-              <TapeBuilderPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <Toaster />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tapes/create"
+            element={
+              <ProtectedRoute>
+                <CreateTapePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tapes/:tapeId"
+            element={
+              <ProtectedRoute>
+                <TapeBuilderPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

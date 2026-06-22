@@ -5,6 +5,7 @@ from loguru import logger
 from app.core.exceptions import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
+    NotAuthenticatedError,
     NotAuthorisedError,
     PasswordTooShortError,
     RewindError,
@@ -20,6 +21,7 @@ from app.core.exceptions import (
 ERROR_MAP = {
     EmailAlreadyRegisteredError: (409, "Conflict"),
     InvalidCredentialsError: (401, "Unauthorized"),
+    NotAuthenticatedError: (401, "Unauthorized"),
     PasswordTooShortError: (422, "ValidationError"),
     TapeNotFoundError: (404, "NotFound"),
     TrackNotFoundError: (404, "NotFound"),

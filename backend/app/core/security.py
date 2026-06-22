@@ -1,11 +1,12 @@
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import Cookie, HTTPException, Response
+from fastapi import Cookie, Response
 from jose import JWTError, jwt
 from loguru import logger
 
 from app.core.config import settings
+from app.core.exceptions import NotAuthenticatedError
 
 ALGORITHM = "HS256"
 
@@ -35,14 +36,14 @@ def clear_auth_cookie(response: Response) -> None:
 
 def get_user_id_from_cookie(access_token: str = Cookie(default=None)) -> int:
     if access_token is None:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise NotAuthenticatedError("Not authenticated")
     try:
         payload = jwt.decode(access_token, settings.jwt_secret, algorithms=[ALGORITHM])
         user_id = int(payload["sub"])
         return user_id
     except JWTError:
         logger.warning("Invalid or expired JWT token")
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise NotAuthenticatedError("Invalid or expired token")
 
 
 def generate_csrf_token() -> str:

@@ -21,6 +21,10 @@ class PasswordTooShortError(RewindError):
     pass
 
 
+class NotAuthenticatedError(RewindError):
+    pass
+
+
 # --- Tapes ---
 
 

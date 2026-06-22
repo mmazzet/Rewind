@@ -1,6 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotAuthorisedError, TapeNotFoundError
 from app.models.tape import Tape
 from app.repositories.tape_repository import TapeRepository
 
@@ -26,9 +26,9 @@ async def get_tape(db: AsyncSession, tape_id: int, user_id: int) -> Tape:
     tape = await tape_repository.get_by_id(tape_id)
 
     if tape is None:
-        raise HTTPException(status_code=404, detail="Tape not found")
+        raise TapeNotFoundError("Tape not found")
 
     if tape.sender_id != user_id:
-        raise HTTPException(status_code=403, detail="Not authorised")
+        raise NotAuthorisedError("Not authorised")
 
     return tape

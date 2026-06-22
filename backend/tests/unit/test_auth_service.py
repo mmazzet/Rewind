@@ -2,8 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from argon2.exceptions import VerifyMismatchError
-from fastapi import HTTPException
 
+from app.core.exceptions import (
+    EmailAlreadyRegisteredError,
+    InvalidCredentialsError,
+    PasswordTooShortError,
+)
 from app.services import auth_service
 
 
@@ -50,10 +54,11 @@ async def test_register_success(mock_db):
 
 @pytest.mark.asyncio
 async def test_register_password_too_short(mock_db):
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(PasswordTooShortError) as exc_info:
         await auth_service.register(mock_db, "new@example.com", "short")
 
     assert exc_info.value.status_code == 422
+    assert exc_info.value.message == "Password must be at least 8 characters"
 
 
 @pytest.mark.asyncio
@@ -67,12 +72,13 @@ async def test_register_existing_email(mock_db):
             "app.services.auth_service.user_repository.get_user_by_email",
             new=AsyncMock(return_value=existing_user),
         ),
-        pytest.raises(HTTPException) as exc_info,
+        pytest.raises(EmailAlreadyRegisteredError) as exc_info,
     ):
 
         await auth_service.register(mock_db, "new@example.com", "123Password")
 
     assert exc_info.value.status_code == 409
+    assert exc_info.value.message == "Email already registered"
 
 
 @pytest.mark.asyncio
@@ -108,11 +114,12 @@ async def test_login_wrong_email(mock_db):
             "app.services.auth_service.ph",
             new=mock_ph,
         ),
-        pytest.raises(HTTPException) as exc_info,
+        pytest.raises(InvalidCredentialsError) as exc_info,
     ):
         await auth_service.login(mock_db, "wrong@example.com", "Password123")
 
     assert exc_info.value.status_code == 401
+    assert exc_info.value.message == "Invalid credentials"
 
 
 @pytest.mark.asyncio
@@ -129,8 +136,9 @@ async def test_login_wrong_password(mock_db, existing_user):
             "app.services.auth_service.ph",
             new=mock_ph,
         ),
-        pytest.raises(HTTPException) as exc_info,
+        pytest.raises(InvalidCredentialsError) as exc_info,
     ):
         await auth_service.login(mock_db, "test@example.com", "wrongpassword")
 
     assert exc_info.value.status_code == 401
+    assert exc_info.value.message == "Invalid credentials"

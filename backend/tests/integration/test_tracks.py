@@ -74,7 +74,7 @@ async def test_add_track_not_authenticated(client: AsyncClient):
     )
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+    assert response.json()["message"] == "Not authenticated"
 
 
 async def test_add_track_wrong_user(client: AsyncClient):
@@ -101,7 +101,7 @@ async def test_add_track_wrong_user(client: AsyncClient):
     )
 
     assert response.status_code == 403
-    assert response.json()["detail"] == "Not authorised"
+    assert response.json()["message"] == "Not authorised"
 
 
 async def test_add_track_tape_not_found(client: AsyncClient):
@@ -120,7 +120,7 @@ async def test_add_track_tape_not_found(client: AsyncClient):
     )
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Tape not found"
+    assert response.json()["message"] == "Tape not found"
 
 
 async def test_add_track_side_time_limit_exceeded(client: AsyncClient):
@@ -156,7 +156,7 @@ async def test_add_track_side_time_limit_exceeded(client: AsyncClient):
     )
 
     assert response.status_code == 422
-    assert response.json()["detail"] == "Side time limit exceeded"
+    assert response.json()["message"] == "Side time limit exceeded"
 
 
 async def create_track(client: AsyncClient, tape_id: int):
@@ -198,7 +198,7 @@ async def test_remove_track_tape_not_found(client: AsyncClient):
     response = await client.delete("/api/v1/tapes/999999/tracks/1")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Tape not found"
+    assert response.json()["message"] == "Tape not found"
 
 
 async def test_remove_track_wrong_user(client: AsyncClient):
@@ -220,7 +220,7 @@ async def test_remove_track_wrong_user(client: AsyncClient):
     response = await client.delete(f"/api/v1/tapes/{tape['id']}/tracks/{track['id']}")
 
     assert response.status_code == 403
-    assert response.json()["detail"] == "Not authorised"
+    assert response.json()["message"] == "Not authorised"
 
 
 async def test_remove_track_tape_not_draft(client: AsyncClient):
@@ -239,7 +239,7 @@ async def test_remove_track_tape_not_draft(client: AsyncClient):
     response = await client.delete(f"/api/v1/tapes/{tape['id']}/tracks/{track['id']}")
 
     assert response.status_code == 409
-    assert response.json()["detail"] == "Tape is not in draft status"
+    assert response.json()["message"] == "Tape is not in draft status"
 
 
 async def test_remove_track_not_authenticated(client: AsyncClient):
@@ -253,7 +253,7 @@ async def test_remove_track_not_authenticated(client: AsyncClient):
     response = await client.delete(f"/api/v1/tapes/{tape['id']}/tracks/{track['id']}")
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+    assert response.json()["message"] == "Not authenticated"
 
 
 async def test_remove_track_not_found(client: AsyncClient):
@@ -264,4 +264,4 @@ async def test_remove_track_not_found(client: AsyncClient):
     response = await client.delete(f"/api/v1/tapes/{tape['id']}/tracks/999999")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Track not found"
+    assert response.json()["message"] == "Track not found"

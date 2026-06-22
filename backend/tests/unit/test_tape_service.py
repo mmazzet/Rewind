@@ -4,6 +4,10 @@ import pytest
 from fastapi import HTTPException
 
 from app.services import tape_service
+from app.core.exceptions import (
+    TapeNotFoundError,
+    NotAuthorisedError,
+)
 
 
 @pytest.fixture
@@ -68,10 +72,10 @@ async def test_get_tape_not_found(mock_db):
         "app.services.tape_service.TapeRepository",
         return_value=mock_repo_instance,
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(TapeNotFoundError) as exc_info:
             await tape_service.get_tape(db=mock_db, tape_id=999, user_id=42)
 
-    assert exc_info.value.status_code == 404
+    assert exc_info.value.message == "Tape not found"
 
 
 @pytest.mark.asyncio
@@ -87,7 +91,7 @@ async def test_get_tape_wrong_user(mock_db):
         "app.services.tape_service.TapeRepository",
         return_value=mock_repo_instance,
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(NotAuthorisedError) as exc_info:
             await tape_service.get_tape(db=mock_db, tape_id=1, user_id=42)
 
-    assert exc_info.value.status_code == 403
+    assert exc_info.value.message == "Not authorised"

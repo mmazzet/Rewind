@@ -2,9 +2,12 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.middleware.error_handlers import register_error_handlers
 from app.routers import auth, spotify, tapes, tracks
 
 app = FastAPI()
+
+register_error_handlers(app)
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(tapes.router, prefix="/api/v1")

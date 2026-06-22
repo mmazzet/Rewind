@@ -1,6 +1,12 @@
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import (
+    NotAuthorisedError,
+    SideFullError,
+    TapeNotFoundError,
+    TapeNotInDraftError,
+    TrackNotFoundError,
+)
 from app.models.tape import TapeStatus
 from app.models.track import Track, TrackSide
 from app.repositories.tape_repository import TapeRepository
@@ -24,19 +30,19 @@ async def add_track(
     tape = await tape_repository.get_by_id(tape_id)
 
     if tape is None:
-        raise HTTPException(status_code=404, detail="Tape not found")
+        raise TapeNotFoundError("Tape not found")
 
     if tape.sender_id != user_id:
-        raise HTTPException(status_code=403, detail="Not authorised")
+        raise NotAuthorisedError("Not authorised")
 
     if tape.status != TapeStatus.draft:
-        raise HTTPException(status_code=409, detail="Tape is not in draft status")
+        raise TapeNotInDraftError("Tape is not in draft status")
 
     side_limit_seconds = (tape.length_minutes // 2) * 60
     current_duration = await track_repository.get_side_duration(tape_id, side)
 
     if current_duration + duration_seconds > side_limit_seconds:
-        raise HTTPException(status_code=422, detail="Side time limit exceeded")
+        raise SideFullError("Side time limit exceeded")
 
     return await track_repository.add_track(
         tape_id=tape_id,
@@ -61,16 +67,16 @@ async def remove_track(
     tape = await tape_repository.get_by_id(tape_id)
 
     if tape is None:
-        raise HTTPException(status_code=404, detail="Tape not found")
+        raise TapeNotFoundError("Tape not found")
 
     if tape.sender_id != user_id:
-        raise HTTPException(status_code=403, detail="Not authorised")
+        raise NotAuthorisedError("Not authorised")
 
     if tape.status != TapeStatus.draft:
-        raise HTTPException(status_code=409, detail="Tape is not in draft status")
+        raise TapeNotInDraftError("Tape is not in draft status")
 
     track = await track_repository.get_track_by_id(track_id)
     if track is None or track.tape_id != tape_id:
-        raise HTTPException(status_code=404, detail="Track not found")
+        raise TrackNotFoundError("Track not found")
 
     await track_repository.delete_track(track_id)

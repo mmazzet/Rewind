@@ -2,10 +2,10 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 import httpx
-from fastapi import HTTPException
 from loguru import logger
 
 from app.core.config import require_spotify_credentials
+from app.core.exceptions import SpotifyNotConfiguredError, SpotifyUnavailableError
 
 
 class SpotifyClient:
@@ -29,9 +29,7 @@ class SpotifyClient:
             try:
                 client_id, client_secret = require_spotify_credentials()
             except ValueError:
-                raise HTTPException(
-                    status_code=503, detail="Spotify integration not configured"
-                )
+                raise SpotifyNotConfiguredError("Spotify integration not configured")
 
             logger.info("Fetching new Spotify app token")
             async with httpx.AsyncClient() as client:
@@ -44,9 +42,7 @@ class SpotifyClient:
                     response.raise_for_status()
                 except httpx.HTTPError as e:
                     logger.error("Failed to fetch Spotify app token: {}", str(e))
-                    raise HTTPException(
-                        status_code=502, detail="Spotify authentication failed"
-                    )
+                    raise SpotifyUnavailableError("Spotify authentication failed")
 
             try:
                 data = response.json()
@@ -54,9 +50,8 @@ class SpotifyClient:
                 expires_in = int(data["expires_in"])
             except (ValueError, KeyError, TypeError) as e:
                 logger.error("Unexpected Spotify token response: {}", str(e))
-                raise HTTPException(
-                    status_code=502, detail="Spotify authentication failed"
-                )
+                raise SpotifyUnavailableError("Spotify authentication failed")
+
             self._token_expires_at = datetime.now(timezone.utc) + timedelta(
                 seconds=max(expires_in - 60, 0)
             )
@@ -77,9 +72,7 @@ class SpotifyClient:
                 response.raise_for_status()
             except httpx.HTTPError as e:
                 logger.error("Spotify search failed: {}", str(e))
-                raise HTTPException(
-                    status_code=502, detail="Spotify search unavailable"
-                )
+                raise SpotifyUnavailableError("Spotify search unavailable")
 
         return response.json()
 
@@ -95,7 +88,7 @@ class SpotifyService:
             items = data["tracks"]["items"]
         except (KeyError, TypeError) as e:
             logger.error("Unexpected Spotify search response: {}", str(e))
-            raise HTTPException(status_code=502, detail="Spotify search unavailable")
+            raise SpotifyUnavailableError("Spotify search unavailable")
 
         tracks = []
         for item in items:

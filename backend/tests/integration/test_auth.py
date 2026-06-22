@@ -21,7 +21,7 @@ async def test_register_existing_email(client):
     )
     assert response.status_code == 409
     data = response.json()
-    assert data["detail"] == "Email already registered"
+    assert data["message"] == "Email already registered"
 
 
 async def test_register_short_password(client):
@@ -31,7 +31,7 @@ async def test_register_short_password(client):
     )
     assert response.status_code == 422
     data = response.json()
-    assert data["detail"] == "Password must be at least 8 characters"
+    assert data["message"] == "Password must be at least 8 characters"
 
 
 async def test_login_success(client):
@@ -61,7 +61,7 @@ async def test_login_wrong_password(client):
     )
     assert response.status_code == 401
     data = response.json()
-    assert data["detail"] == "Invalid credentials"
+    assert data["message"] == "Invalid credentials"
 
 
 async def test_login_nonexistent_email(client):
@@ -71,7 +71,7 @@ async def test_login_nonexistent_email(client):
     )
     assert response.status_code == 401
     data = response.json()
-    assert data["detail"] == "Invalid credentials"
+    assert data["message"] == "Invalid credentials"
 
 
 async def test_get_current_user_success(client):

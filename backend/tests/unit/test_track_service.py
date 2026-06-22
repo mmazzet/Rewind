@@ -6,6 +6,13 @@ from fastapi import HTTPException
 from app.models.tape import TapeStatus
 from app.models.track import TrackSide
 from app.services import track_service
+from app.core.exceptions import (
+    TapeNotFoundError,
+    NotAuthorisedError,
+    TapeNotInDraftError,
+    SideFullError,
+    TrackNotFoundError
+)
 
 
 @pytest.fixture
@@ -65,7 +72,7 @@ async def test_add_track_tape_not_found(mock_db):
     with patch(
         "app.services.track_service.TapeRepository", return_value=mock_tape_repo
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(TapeNotFoundError) as exc_info:
             await track_service.add_track(
                 db=mock_db,
                 tape_id=999,  # Non-existent tape ID
@@ -78,8 +85,7 @@ async def test_add_track_tape_not_found(mock_db):
                 position=1,
             )
 
-    assert exc_info.value.status_code == 404
-    assert exc_info.value.detail == "Tape not found"
+    assert exc_info.value.message == "Tape not found"
 
 
 async def test_add_track_wrong_user(mock_db):
@@ -93,7 +99,7 @@ async def test_add_track_wrong_user(mock_db):
     with patch(
         "app.services.track_service.TapeRepository", return_value=mock_tape_repo
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(NotAuthorisedError) as exc_info:
             await track_service.add_track(
                 db=mock_db,
                 tape_id=1,
@@ -106,8 +112,7 @@ async def test_add_track_wrong_user(mock_db):
                 position=1,
             )
 
-    assert exc_info.value.status_code == 403
-    assert exc_info.value.detail == "Not authorised"
+    assert exc_info.value.message == "Not authorised"
 
 
 async def test_add_track_side_limit_exceeded(mock_db):
@@ -131,7 +136,7 @@ async def test_add_track_side_limit_exceeded(mock_db):
             "app.services.track_service.TrackRepository", return_value=mock_track_repo
         ),
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(SideFullError) as exc_info:
             await track_service.add_track(
                 db=mock_db,
                 tape_id=1,
@@ -144,8 +149,7 @@ async def test_add_track_side_limit_exceeded(mock_db):
                 position=1,
             )
 
-    assert exc_info.value.status_code == 422
-    assert exc_info.value.detail == "Side time limit exceeded"
+    assert exc_info.value.message == "Side time limit exceeded"
 
 
 async def test_remove_track_success(mock_db):
@@ -188,7 +192,7 @@ async def test_remove_track_tape_not_found(mock_db):
     with patch(
         "app.services.track_service.TapeRepository", return_value=mock_tape_repo
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(TapeNotFoundError) as exc_info:
             await track_service.remove_track(
                 db=mock_db,
                 tape_id=999,  # Non-existent tape ID
@@ -196,8 +200,7 @@ async def test_remove_track_tape_not_found(mock_db):
                 user_id=1,
             )
 
-    assert exc_info.value.status_code == 404
-    assert exc_info.value.detail == "Tape not found"
+    assert exc_info.value.message == "Tape not found"
 
 
 async def test_remove_track_wrong_user(mock_db):
@@ -211,7 +214,7 @@ async def test_remove_track_wrong_user(mock_db):
     with patch(
         "app.services.track_service.TapeRepository", return_value=mock_tape_repo
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(NotAuthorisedError) as exc_info:
             await track_service.remove_track(
                 db=mock_db,
                 tape_id=1,
@@ -219,8 +222,7 @@ async def test_remove_track_wrong_user(mock_db):
                 user_id=1,  # User ID does not match tape sender ID
             )
 
-    assert exc_info.value.status_code == 403
-    assert exc_info.value.detail == "Not authorised"
+    assert exc_info.value.message == "Not authorised"
 
 
 async def test_add_track_at_exact_side_limit(mock_db):
@@ -282,7 +284,7 @@ async def test_create_track_fails_when_status_not_draft(mock_db):
         patch("app.services.track_service.TapeRepository", return_value=mock_tape_repo),
     ):
 
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(TapeNotInDraftError) as exc_info:
             await track_service.add_track(
                 db=mock_db,
                 tape_id=1,
@@ -294,8 +296,7 @@ async def test_create_track_fails_when_status_not_draft(mock_db):
                 side=TrackSide.A,
                 position=1,
             )
-    assert exc_info.value.status_code == 409
-    assert exc_info.value.detail == "Tape is not in draft status"
+    assert exc_info.value.message == "Tape is not in draft status"
 
 
 async def test_remove_track_fails_when_tape_not_in_draft(mock_db):
@@ -311,7 +312,7 @@ async def test_remove_track_fails_when_tape_not_in_draft(mock_db):
             return_value=mock_tape_repo,
         ),
     ):
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(TapeNotInDraftError) as exc_info:
             await track_service.remove_track(
                 db=mock_db,
                 tape_id=123,
@@ -319,5 +320,4 @@ async def test_remove_track_fails_when_tape_not_in_draft(mock_db):
                 user_id=1,
             )
 
-    assert exc_info.value.status_code == 409
-    assert exc_info.value.detail == "Tape is not in draft status"
+    assert exc_info.value.message == "Tape is not in draft status"

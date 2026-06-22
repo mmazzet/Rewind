@@ -57,7 +57,6 @@ async def test_register_password_too_short(mock_db):
     with pytest.raises(PasswordTooShortError) as exc_info:
         await auth_service.register(mock_db, "new@example.com", "short")
 
-    assert exc_info.value.status_code == 422
     assert exc_info.value.message == "Password must be at least 8 characters"
 
 
@@ -77,7 +76,6 @@ async def test_register_existing_email(mock_db):
 
         await auth_service.register(mock_db, "new@example.com", "123Password")
 
-    assert exc_info.value.status_code == 409
     assert exc_info.value.message == "Email already registered"
 
 
@@ -118,7 +116,6 @@ async def test_login_wrong_email(mock_db):
     ):
         await auth_service.login(mock_db, "wrong@example.com", "Password123")
 
-    assert exc_info.value.status_code == 401
     assert exc_info.value.message == "Invalid credentials"
 
 
@@ -140,5 +137,4 @@ async def test_login_wrong_password(mock_db, existing_user):
     ):
         await auth_service.login(mock_db, "test@example.com", "wrongpassword")
 
-    assert exc_info.value.status_code == 401
     assert exc_info.value.message == "Invalid credentials"

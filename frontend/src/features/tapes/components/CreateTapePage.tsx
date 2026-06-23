@@ -3,6 +3,8 @@ import type { CassetteStyle, CreateTapeRequest, Tape } from "../types";
 import { useMutation } from "@tanstack/react-query";
 import { tapesApi } from "../api/tapesApi";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { getErrorMessage } from "@/api/errorMessage";
 
 export function CreateTapePage() {
   const [formData, setFormData] = useState<CreateTapeRequest>({
@@ -17,7 +19,7 @@ export function CreateTapePage() {
       navigate(`/tapes/${tape.id}`);
     },
     onError: (error) => {
-      console.log("Error creating tape:", error);
+      toast.error(getErrorMessage(error, "Failed to create tape."));
     },
   });
   return (

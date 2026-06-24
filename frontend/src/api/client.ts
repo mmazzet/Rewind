@@ -29,7 +29,10 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().setUser(null);
-      if (window.location.pathname !== "/login") {
+
+      const isSessionCheck = error.config?.url === "/auth/me";
+
+      if (!isSessionCheck && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }

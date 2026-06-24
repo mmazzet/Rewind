@@ -8,6 +8,9 @@ import useAuthStore from "@/store/authStore";
 import { CreateTapePage } from "@/features/tapes/components/CreateTapePage";
 import { TapeBuilderPage } from "@/features/tapes/components/TapeBuilderPage";
 import { Toaster } from "react-hot-toast";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import AppErrorFallback from "@/components/AppErrorFallback"
+import TapeBuilderErrorFallback from "@/components/TapeBuilderErrorFallback"
 
 function HomePage() {
   const setUser = useAuthStore((state) => state.setUser);
@@ -55,6 +58,7 @@ function App() {
     <>
       <Toaster />
       <BrowserRouter>
+      <ErrorBoundary fallback={() => <AppErrorFallback />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -78,12 +82,15 @@ function App() {
             path="/tapes/:tapeId"
             element={
               <ProtectedRoute>
+                <ErrorBoundary fallback={(error) => <TapeBuilderErrorFallback error={error} />}>
                 <TapeBuilderPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </>
   );

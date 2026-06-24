@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
+from fastapi.exceptions import RequestValidationError
 
 from app.core.exceptions import (
     EmailAlreadyRegisteredError,
@@ -62,5 +63,27 @@ def register_error_handlers(app: FastAPI) -> None:
                 "error": "InternalServerError",
                 "message": "An unexpected error occurred",
                 "details": {},
+            },
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+        details = {}
+        for error in exc.errors():
+            field = error["loc"][-1]
+            details[field] = error["msg"]
+        logger.warning(
+            "Validation error: {} {} - {}",
+            request.method,
+            request.url.path,
+            details,
+        )
+
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "ValidationError",
+                "message": "Validation failed",
+                "details": details,
             },
         )

@@ -1,16 +1,24 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.tape import CassetteStyle, TapeStatus
 from app.schemas.track import TrackResponse
 
 
 class CreateTapeRequest(BaseModel):
-    title: str = Field(max_length=100)
+    title: str = Field(min_length=1, max_length=100)
     cassette_style: CassetteStyle
     length_minutes: Literal[60, 90]
+
+    @field_validator("title")
+    @classmethod
+    def title_not_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("Title cannot be blank")
+        return stripped
 
 
 class TapeResponse(BaseModel):

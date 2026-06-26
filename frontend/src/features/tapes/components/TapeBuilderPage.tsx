@@ -10,6 +10,7 @@ import { SpotifySearch } from "./SpotifySearch";
 import { TrackList } from "./TrackList";
 import { toast } from "react-hot-toast";
 import { getErrorMessage } from "@/api/errorMessage";
+import { Cassette } from "./Cassette";
 
 export function TapeBuilderPage() {
   const { tapeId } = useParams<{ tapeId: string }>();
@@ -73,6 +74,31 @@ export function TapeBuilderPage() {
         </p>
         <p className="text-xs text-gray-400 mt-4">Status: {tape.status}</p>
       </div>
+
+      {/* Cassette visual */}
+      {/* Two cassettes side by side */}
+      <div
+        style={{
+          display: "flex",
+          gap: "24px",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        <Cassette
+          cassetteStyle={tape.cassette_style}
+          title={tape.title}
+          tracks={tape.tracks}
+          side="A"
+        />
+        <Cassette
+          cassetteStyle={tape.cassette_style}
+          title={tape.title}
+          tracks={tape.tracks}
+          side="B"
+        />
+      </div>
+
       <SpotifySearch onAddTrack={handleAddTrack} />
 
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow flex gap-8">

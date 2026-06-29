@@ -1,10 +1,14 @@
 import React from "react";
-import { CASSETTE_THEMES, DEFAULT_THEME } from "./Cassette.styles";
+import {
+  CASSETTE_THEMES,
+  DEFAULT_THEME,
+  cassetteStyles,
+} from "./Cassette.styles";
 import type { CassetteTheme } from "./Cassette.styles";
 import type { Track } from "../types";
 
-const MAX_VISIBLE_TRACKS = 7;
-const MAX_TITLE_LENGTH = 20;
+const MAX_VISIBLE_TRACKS = 10;
+const MAX_TITLE_LENGTH = 25;
 
 function truncate(title: string): string {
   if (title.length <= MAX_TITLE_LENGTH) return title;
@@ -30,44 +34,13 @@ const Cassette: React.FC<CassetteProps> = ({
   const visibleTracks = sideTracks.slice(0, MAX_VISIBLE_TRACKS);
   const hiddenCount = sideTracks.length - visibleTracks.length;
 
-  // Build the label text: titles separated by dashes
   const labelText = visibleTracks.map((t) => truncate(t.title)).join(" - ");
 
   return (
-    <div
-      style={{
-        width: "340px",
-        height: "210px",
-        backgroundColor: theme.body,
-        borderRadius: "10px",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        boxSizing: "border-box",
-      }}
-    >
-      {/* Label area */}
-      <div
-        style={{
-          backgroundColor: theme.label,
-          margin: "10px 10px 0 10px",
-          borderRadius: "4px 4px 0 0",
-          padding: "8px 10px",
-          flex: "1",
-          overflow: "hidden",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "'Caveat', cursive",
-            fontSize: "15px",
-            color: theme.text,
-            margin: 0,
-            lineHeight: "1.5",
-            wordBreak: "break-word",
-          }}
-        >
+    <div style={{ ...cassetteStyles.shell, backgroundColor: theme.body }}>
+      {/* Label */}
+      <div style={{ ...cassetteStyles.label, backgroundColor: theme.label }}>
+        <p style={{ ...cassetteStyles.labelText, color: theme.text }}>
           {labelText || "No tracks yet"}
           {hiddenCount > 0 && (
             <span style={{ opacity: 0.6 }}> + {hiddenCount} more</span>
@@ -75,83 +48,35 @@ const Cassette: React.FC<CassetteProps> = ({
         </p>
       </div>
 
-      {/* Reel row */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-around",
-          alignItems: "center",
-          width: "100%",
-          marginTop: "16px",
-        }}
-      >
-        {/* Left reel */}
+      {/* Reels */}
+      <div style={cassetteStyles.reelRow}>
         <div
           style={{
-            width: "72px",
-            height: "72px",
-            borderRadius: "50%",
+            ...cassetteStyles.reel,
             backgroundColor: theme.reel,
-            border: `3px solid ${theme.accent}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            borderColor: theme.accent,
           }}
         >
           <div
-            style={{
-              width: "24px",
-              height: "24px",
-              borderRadius: "50%",
-              backgroundColor: theme.accent,
-            }}
+            style={{ ...cassetteStyles.reelHub, backgroundColor: theme.accent }}
           />
         </div>
-
-        {/* Right reel */}
         <div
           style={{
-            width: "72px",
-            height: "72px",
-            borderRadius: "50%",
+            ...cassetteStyles.reel,
             backgroundColor: theme.reel,
-            border: `3px solid ${theme.accent}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            borderColor: theme.accent,
           }}
         >
           <div
-            style={{
-              width: "24px",
-              height: "24px",
-              borderRadius: "50%",
-              backgroundColor: theme.accent,
-            }}
+            style={{ ...cassetteStyles.reelHub, backgroundColor: theme.accent }}
           />
         </div>
       </div>
 
-      {/* Footer strip — tape title */}
-      <div
-        style={{
-          backgroundColor: theme.accent,
-          margin: "0 10px 10px 10px",
-          borderRadius: "0 0 4px 4px",
-          padding: "4px 10px",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "'Special Elite', cursive",
-            fontSize: "15px",
-            color: theme.body,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "block",
-          }}
-        >
+      {/* Footer */}
+      <div style={{ ...cassetteStyles.footer, backgroundColor: theme.accent }}>
+        <span style={{ ...cassetteStyles.footerText, color: theme.body }}>
           {title}
         </span>
       </div>

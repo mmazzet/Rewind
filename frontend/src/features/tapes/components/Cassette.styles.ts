@@ -38,3 +38,67 @@ export const CASSETTE_THEMES: Record<string, CassetteTheme> = {
 };
 
 export const DEFAULT_THEME = CASSETTE_THEMES.classic;
+
+export const cassetteStyles = {
+  shell: {
+    width: "380px",
+    height: "240px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+    display: "flex",
+    flexDirection: "column" as const,
+    overflow: "hidden",
+    boxSizing: "border-box" as const,
+  },
+  label: {
+    margin: "10px 10px 0 10px",
+    borderRadius: "4px 4px 0 0",
+    padding: "8px 10px",
+    flex: "1",
+    overflow: "hidden",
+  },
+  labelText: {
+    fontFamily: "'Caveat', cursive",
+    fontSize: "15px",
+    fontWeight: "bold",
+    margin: 0,
+    lineHeight: "1.5",
+    wordBreak: "break-word" as const,
+  },
+  reelRow: {
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    width: "100%",
+    marginTop: "28px",
+    marginBottom: "16px",
+  },
+  reel: {
+    width: "72px",
+    height: "72px",
+    borderRadius: "50%",
+    border: "3px solid",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reelHub: {
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+  },
+  footer: {
+    margin: "0 10px 10px 10px",
+    borderRadius: "0 0 4px 4px",
+    padding: "4px 10px",
+  },
+  footerText: {
+    fontFamily: "'Special Elite', cursive",
+    fontSize: "15px",
+    fontWeight: "bold",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    display: "block",
+  },
+};

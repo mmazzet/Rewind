@@ -41,3 +41,9 @@ class TapeRepository:
             .options(selectinload(Tape.tracks))
         )
         return list(result.scalars().all())
+
+    async def update_status(self, tape: Tape, status: TapeStatus) -> Tape:
+        tape.status = status
+        await self.db.commit()
+        await self.db.refresh(tape)
+        return tape

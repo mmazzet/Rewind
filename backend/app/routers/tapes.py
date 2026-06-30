@@ -33,3 +33,13 @@ async def get_tape(
 ):
     tape = await tape_service.get_tape(db=db, tape_id=tape_id, user_id=user_id)
     return tape
+
+
+@router.patch("/{tape_id}/ready", response_model=TapeResponse)
+async def mark_ready(
+    tape_id: int,
+    db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_user_id_from_cookie),
+):
+    tape = await tape_service.mark_ready(db=db, tape_id=tape_id, user_id=user_id)
+    return tape

@@ -58,6 +58,17 @@ export function TapeBuilderPage() {
     },
   });
 
+  const { mutate: markReady, isPending: isMarkingReady } = useMutation({
+    mutationFn: () => tapesApi.markReady(Number(tapeId)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tape", tapeId] });
+      toast.success("Tape marked as ready!");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to mark tape as ready."));
+    },
+  });
+
   function handleAddTrack(track: SpotifySearchResult, side: TrackSide) {
     addTrack({ track, side });
   }
@@ -115,6 +126,18 @@ export function TapeBuilderPage() {
           onRemoveTrack={removeTrack}
         />
       </div>
+
+      {tape.status === "draft" && (
+        <div className="w-full max-w-md px-8">
+          <button
+            onClick={() => markReady()}
+            disabled={tape.tracks.length === 0 || isMarkingReady}
+            className="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 transition-colors"
+          >
+            {isMarkingReady ? "Saving..." : "Mark as ready"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

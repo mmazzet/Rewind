@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from loguru import logger
-from fastapi.exceptions import RequestValidationError
 
 from app.core.exceptions import (
     EmailAlreadyRegisteredError,
@@ -13,6 +13,7 @@ from app.core.exceptions import (
     SideFullError,
     SpotifyNotConfiguredError,
     SpotifyUnavailableError,
+    TapeHasNoTracksError,
     TapeNotFoundError,
     TapeNotInDraftError,
     TrackNotFoundError,
@@ -31,6 +32,7 @@ ERROR_MAP = {
     SideFullError: (422, "ValidationError"),
     SpotifyNotConfiguredError: (503, "ServiceUnavailable"),
     SpotifyUnavailableError: (502, "BadGateway"),
+    TapeHasNoTracksError: (422, "ValidationError"),
 }
 
 
@@ -67,7 +69,9 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    async def validation_error_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         details = {}
         for error in exc.errors():
             field = error["loc"][-1]

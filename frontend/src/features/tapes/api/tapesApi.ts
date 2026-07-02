@@ -23,4 +23,9 @@ export const tapesApi = {
   removeTrack: async (tapeId: number, trackId: number): Promise<void> => {
     await apiClient.delete(`/tapes/${tapeId}/tracks/${trackId}`);
   },
+
+  markReady: async (tapeId: number): Promise<Tape> => {
+    const response = await apiClient.patch<Tape>(`/tapes/${tapeId}/ready`);
+    return response.data;
+  },
 };

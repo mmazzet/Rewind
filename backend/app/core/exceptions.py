@@ -40,6 +40,10 @@ class TapeNotInDraftError(RewindError):
     pass
 
 
+class TapeHasNoTracksError(RewindError):
+    pass
+
+
 # --- Tracks ---
 
 

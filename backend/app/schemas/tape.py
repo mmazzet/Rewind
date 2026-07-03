@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.tape import CassetteStyle, TapeStatus
 from app.schemas.track import TrackResponse
@@ -30,5 +30,19 @@ class TapeResponse(BaseModel):
     sender_id: int
     tracks: list[TrackResponse] = []
     created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SendTapeRequest(BaseModel):
+    recipient_email: EmailStr
+    message: str | None = Field(default=None, max_length=500)
+
+
+class SendTapeResponse(BaseModel):
+    id: int
+    status: TapeStatus
+    public_token: str
+    sent_at: datetime
 
     model_config = {"from_attributes": True}

@@ -3,7 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import get_user_id_from_cookie
 from app.db.session import get_db
-from app.schemas.tape import CreateTapeRequest, TapeResponse
+from app.schemas.tape import (
+    CreateTapeRequest,
+    SendTapeRequest,
+    SendTapeResponse,
+    TapeResponse,
+)
 from app.services import tape_service
 
 router = APIRouter(prefix="/tapes", tags=["tapes"])
@@ -42,4 +47,21 @@ async def mark_ready(
     user_id: int = Depends(get_user_id_from_cookie),
 ):
     tape = await tape_service.mark_ready(db=db, tape_id=tape_id, user_id=user_id)
+    return tape
+
+
+@router.post("/{tape_id}/send", response_model=SendTapeResponse)
+async def send_tape(
+    tape_id: int,
+    body: SendTapeRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_user_id_from_cookie),
+):
+    tape = await tape_service.send_tape(
+        db=db,
+        tape_id=tape_id,
+        user_id=user_id,
+        recipient_email=body.recipient_email,
+        message=body.message,
+    )
     return tape

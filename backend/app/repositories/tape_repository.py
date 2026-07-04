@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -47,3 +49,20 @@ class TapeRepository:
         await self.db.commit()
         await self.db.refresh(tape)
         return tape
+
+    async def send_tape(
+        self,
+        tape: Tape,
+        recipient_email: str,
+        message: str | None,
+        public_token: str,
+    ) -> Tape:
+        tape.recipient_email = recipient_email
+        tape.message = message
+        tape.public_token = public_token
+        tape.status = TapeStatus.sent
+        tape.sent_at = datetime.now(timezone.utc)
+
+        await self.db.commit()
+
+        return await self.get_by_id(tape.id)

@@ -16,6 +16,7 @@ from app.core.exceptions import (
     TapeHasNoTracksError,
     TapeNotFoundError,
     TapeNotInDraftError,
+    TapeNotReadyError,
     TrackNotFoundError,
 )
 
@@ -33,6 +34,7 @@ ERROR_MAP = {
     SpotifyNotConfiguredError: (503, "ServiceUnavailable"),
     SpotifyUnavailableError: (502, "BadGateway"),
     TapeHasNoTracksError: (422, "ValidationError"),
+    TapeNotReadyError: (409, "Conflict"),
 }
 
 

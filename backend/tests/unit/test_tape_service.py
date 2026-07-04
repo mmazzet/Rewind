@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -7,6 +7,7 @@ from app.core.exceptions import (
     TapeHasNoTracksError,
     TapeNotFoundError,
     TapeNotInDraftError,
+    TapeNotReadyError,
 )
 from app.models.tape import TapeStatus
 from app.services import tape_service
@@ -187,4 +188,108 @@ async def test_mark_ready_success(mock_db):
     assert result.status == TapeStatus.ready
     mock_repo_instance.update_status.assert_called_once_with(
         mock_tape, TapeStatus.ready
+    )
+
+
+@pytest.mark.asyncio
+async def test_send_tape_not_found(mock_db):
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=None)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(TapeNotFoundError):
+            await tape_service.send_tape(
+                db=mock_db,
+                tape_id=999,
+                user_id=42,
+                recipient_email="test@example.com",
+                message=None,
+            )
+
+
+@pytest.mark.asyncio
+async def test_send_tape_wrong_user(mock_db):
+    mock_tape = MagicMock()
+    mock_tape.sender_id = 99
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(NotAuthorisedError):
+            await tape_service.send_tape(
+                db=mock_db,
+                tape_id=1,
+                user_id=42,
+                recipient_email="test@example.com",
+                message=None,
+            )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "status",
+    [TapeStatus.draft, TapeStatus.sent],
+)
+async def test_send_tape_invalid_status(mock_db, status):
+    mock_tape = MagicMock()
+    mock_tape.sender_id = 42
+    mock_tape.status = status
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(TapeNotReadyError):
+            await tape_service.send_tape(
+                db=mock_db,
+                tape_id=1,
+                user_id=42,
+                recipient_email="test@example.com",
+                message=None,
+            )
+
+    mock_repo_instance.get_by_id.assert_awaited_once_with(1)
+
+
+@pytest.mark.asyncio
+async def test_send_tape_success(mock_db):
+    mock_tape = MagicMock()
+    mock_tape.sender_id = 42
+    mock_tape.status = TapeStatus.ready
+
+    mock_sent_tape = MagicMock()
+    mock_sent_tape.status = TapeStatus.sent
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
+    mock_repo_instance.send_tape = AsyncMock(return_value=mock_sent_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        result = await tape_service.send_tape(
+            db=mock_db,
+            tape_id=1,
+            user_id=42,
+            recipient_email="test@example.com",
+            message="Made this for you",
+        )
+
+    assert result.status == TapeStatus.sent
+    mock_repo_instance.send_tape.assert_awaited_once_with(
+        tape=mock_tape,
+        recipient_email="test@example.com",
+        message="Made this for you",
+        public_token=ANY,
     )

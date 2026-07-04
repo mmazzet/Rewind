@@ -118,3 +118,165 @@ async def test_get_tape_wrong_user(client):
     await register_and_login(client, email="user2@example.com")
     response = await client.get(f"/api/v1/tapes/{tape['id']}")
     assert response.status_code == 403
+
+
+async def create_track(client: AsyncClient, tape_id: int) -> dict:
+    response = await client.post(
+        f"/api/v1/tapes/{tape_id}/tracks",
+        json={
+            "spotify_track_id": "4uLU6hMCjMI75M1A2tKUQC",
+            "title": "Come Together",
+            "artist": "The Beatles",
+            "duration_seconds": 259,
+            "side": "A",
+            "position": 1,
+        },
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
+async def mark_tape_ready(client: AsyncClient, tape_id: int) -> dict:
+    response = await client.patch(f"/api/v1/tapes/{tape_id}/ready")
+    assert response.status_code == 200
+    return response.json()
+
+
+async def test_send_tape_success(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+    await create_track(client, tape["id"])
+    await mark_tape_ready(client, tape["id"])
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "sent"
+    assert data["public_token"] is not None
+    assert data["sent_at"] is not None
+
+
+async def test_send_tape_not_authenticated(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+    await create_track(client, tape["id"])
+    await mark_tape_ready(client, tape["id"])
+
+    client.cookies.clear()
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["message"] == "Not authenticated"
+
+
+async def test_send_tape_wrong_user(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+    await create_track(client, tape["id"])
+    await mark_tape_ready(client, tape["id"])
+
+    client.cookies.clear()
+    await register_and_login(client, email="user2@example.com", password="password2")
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["message"] == "Not authorised"
+
+
+async def test_send_tape_not_ready(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+    await create_track(client, tape["id"])
+    # deliberately skip mark_tape_ready — tape is still "draft"
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["message"] == "Tape must be in ready status to send"
+
+
+async def test_send_tape_already_sent(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+    await create_track(client, tape["id"])
+    await mark_tape_ready(client, tape["id"])
+
+    first_response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+    assert first_response.status_code == 200
+
+    second_response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+
+    assert second_response.status_code == 409
+    assert second_response.json()["message"] == "Tape must be in ready status to send"
+
+
+async def test_send_tape_missing_recipient_email(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"message": "Enjoy!"},
+    )
+
+    assert response.status_code == 422
+    assert "recipient_email" in response.json()["details"]
+
+
+async def test_send_tape_invalid_email_format(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "not-an-email", "message": "Enjoy!"},
+    )
+
+    assert response.status_code == 422
+    assert "recipient_email" in response.json()["details"]
+
+
+async def test_send_tape_message_too_long(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "x" * 501},
+    )
+
+    assert response.status_code == 422
+    assert "message" in response.json()["details"]
+
+
+async def test_send_tape_not_found(client: AsyncClient):
+    await register_and_login(client)
+
+    response = await client.post(
+        "/api/v1/tapes/999999/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["message"] == "Tape not found"

@@ -5,6 +5,7 @@ from loguru import logger
 
 from app.core.exceptions import (
     EmailAlreadyRegisteredError,
+    EmailDeliveryError,
     InvalidCredentialsError,
     NotAuthenticatedError,
     NotAuthorisedError,
@@ -35,6 +36,7 @@ ERROR_MAP = {
     SpotifyUnavailableError: (502, "BadGateway"),
     TapeHasNoTracksError: (422, "ValidationError"),
     TapeNotReadyError: (409, "Conflict"),
+    EmailDeliveryError: (502, "BadGateway"),
 }
 
 

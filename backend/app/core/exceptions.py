@@ -68,3 +68,10 @@ class SpotifyNotConfiguredError(RewindError):
 
 class SpotifyUnavailableError(RewindError):
     pass
+
+
+# --- Resend ---
+
+
+class EmailDeliveryError(RewindError):
+    pass

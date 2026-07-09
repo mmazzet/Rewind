@@ -3,6 +3,7 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 import pytest
 
 from app.core.exceptions import (
+    EmailDeliveryError,
     NotAuthorisedError,
     TapeHasNoTracksError,
     TapeNotFoundError,
@@ -274,9 +275,15 @@ async def test_send_tape_success(mock_db):
     mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
     mock_repo_instance.send_tape = AsyncMock(return_value=mock_sent_tape)
 
-    with patch(
-        "app.services.tape_service.TapeRepository",
-        return_value=mock_repo_instance,
+    with (
+        patch(
+            "app.services.tape_service.TapeRepository",
+            return_value=mock_repo_instance,
+        ),
+        patch(
+            "app.services.tape_service.email_service.send_tape_email",
+            new_callable=AsyncMock,
+        ) as mock_send_email,
     ):
         result = await tape_service.send_tape(
             db=mock_db,
@@ -293,3 +300,41 @@ async def test_send_tape_success(mock_db):
         message="Made this for you",
         public_token=ANY,
     )
+    mock_send_email.assert_awaited_once_with(
+        recipient="test@example.com",
+        public_token=ANY,
+    )
+
+
+@pytest.mark.asyncio
+async def test_send_tape_email_failure_raises(mock_db):
+    mock_tape = MagicMock()
+    mock_tape.sender_id = 42
+    mock_tape.status = TapeStatus.ready
+
+    mock_sent_tape = MagicMock()
+    mock_sent_tape.status = TapeStatus.sent
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
+    mock_repo_instance.send_tape = AsyncMock(return_value=mock_sent_tape)
+
+    with (
+        patch(
+            "app.services.tape_service.TapeRepository",
+            return_value=mock_repo_instance,
+        ),
+        patch(
+            "app.services.tape_service.email_service.send_tape_email",
+            new_callable=AsyncMock,
+            side_effect=EmailDeliveryError("Could not send tape email"),
+        ),
+    ):
+        with pytest.raises(EmailDeliveryError):
+            await tape_service.send_tape(
+                db=mock_db,
+                tape_id=1,
+                user_id=42,
+                recipient_email="test@example.com",
+                message="Made this for you",
+            )

@@ -70,7 +70,7 @@ class SpotifyUnavailableError(RewindError):
     pass
 
 
-# --- Resend ---
+# --- Email ---
 
 
 class EmailDeliveryError(RewindError):

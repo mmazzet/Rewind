@@ -1,5 +1,7 @@
 from httpx import AsyncClient
 
+from app.core.exceptions import EmailDeliveryError
+
 # --- Helper ---
 
 
@@ -280,3 +282,21 @@ async def test_send_tape_not_found(client: AsyncClient):
 
     assert response.status_code == 404
     assert response.json()["message"] == "Tape not found"
+
+
+async def test_send_tape_email_failure_returns_502(
+    client: AsyncClient, fake_email_service
+):
+    fake_email_service.side_effect = EmailDeliveryError("Could not send tape email")
+
+    await register_and_login(client)
+    tape = await create_tape(client)
+    await create_track(client, tape["id"])
+    await mark_tape_ready(client, tape["id"])
+
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+
+    assert response.status_code == 502

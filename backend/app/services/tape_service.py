@@ -11,6 +11,7 @@ from app.core.exceptions import (
 )
 from app.models.tape import Tape, TapeStatus
 from app.repositories.tape_repository import TapeRepository
+from app.services.email_service import email_service
 
 
 async def create_tape(
@@ -82,9 +83,16 @@ async def send_tape(
 
     public_token = str(uuid.uuid4())
 
-    return await tape_repository.send_tape(
+    sent_tape = await tape_repository.send_tape(
         tape=tape,
         recipient_email=recipient_email,
         message=message,
         public_token=public_token,
     )
+
+    await email_service.send_tape_email(
+        recipient=recipient_email,
+        public_token=public_token,
+    )
+
+    return sent_tape

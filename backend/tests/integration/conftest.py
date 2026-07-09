@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -71,3 +73,12 @@ async def fake_spotify_client():
     spotify_service.client = FakeSpotifyClient()
     yield
     spotify_service.client = real_client
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def fake_email_service():
+    with patch(
+        "app.services.tape_service.email_service.send_tape_email",
+        new_callable=AsyncMock,
+    ) as mock_send:
+        yield mock_send

@@ -5,6 +5,7 @@ from app.core.security import get_user_id_from_cookie
 from app.db.session import get_db
 from app.schemas.tape import (
     CreateTapeRequest,
+    PublicTapeResponse,
     SendTapeRequest,
     SendTapeResponse,
     TapeResponse,
@@ -64,4 +65,14 @@ async def send_tape(
         recipient_email=body.recipient_email,
         message=body.message,
     )
+    return tape
+
+
+@router.get("/public/{public_token}", response_model=PublicTapeResponse)
+async def get_public_tape(
+    public_token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return a sent tape by its public token. No authentication required."""
+    tape = await tape_service.get_public_tape(db=db, public_token=public_token)
     return tape

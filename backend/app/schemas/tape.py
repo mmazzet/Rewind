@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.models.tape import CassetteStyle, TapeStatus
 from app.schemas.track import TrackResponse
@@ -46,3 +46,15 @@ class SendTapeResponse(BaseModel):
     sent_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PublicTapeResponse(BaseModel):
+    id: int
+    title: str
+    cassette_style: str
+    length_minutes: int
+    status: str
+    tracks: list[TrackResponse]
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

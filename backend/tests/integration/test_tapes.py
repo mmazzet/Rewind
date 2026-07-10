@@ -300,3 +300,51 @@ async def test_send_tape_email_failure_returns_502(
     )
 
     assert response.status_code == 502
+
+
+# --- GET /api/v1/tapes/public/{public_token} ---
+
+
+async def helper_send_tape(client: AsyncClient) -> dict:
+    tape = await create_tape(client)
+    await create_track(client, tape["id"])
+    await mark_tape_ready(client, tape["id"])
+    response = await client.post(
+        f"/api/v1/tapes/{tape['id']}/send",
+        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
+    )
+    assert response.status_code == 200
+    return response.json()
+
+
+async def test_get_public_tape_success(client: AsyncClient):
+    await register_and_login(client)
+    sent = await helper_send_tape(client)
+
+    client.cookies.clear()
+
+    response = await client.get(f"/api/v1/tapes/public/{sent['public_token']}")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "sent"
+    assert data["title"] == "My Mix"
+    assert len(data["tracks"]) == 1
+    assert "recipient_email" not in data
+    assert "message" not in data
+
+
+async def test_get_public_tape_not_found(client: AsyncClient):
+    response = await client.get("/api/v1/tapes/public/fake-token-123")
+
+    assert response.status_code == 404
+    assert response.json()["message"] == "Tape not found"
+
+
+async def test_get_public_tape_draft_not_accessible(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)
+
+    response = await client.get(f"/api/v1/tapes/public/{tape['id']}")
+
+    assert response.status_code == 404

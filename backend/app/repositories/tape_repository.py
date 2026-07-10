@@ -44,6 +44,15 @@ class TapeRepository:
         )
         return list(result.scalars().all())
 
+    async def get_by_public_token(self, public_token: str) -> Tape | None:
+        """Return a tape by its public token, including tracks."""
+        result = await self.db.execute(
+            select(Tape)
+            .where(Tape.public_token == public_token)
+            .options(selectinload(Tape.tracks))
+        )
+        return result.scalars().first()
+
     async def update_status(self, tape: Tape, status: TapeStatus) -> Tape:
         tape.status = status
         await self.db.commit()

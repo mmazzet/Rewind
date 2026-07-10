@@ -96,3 +96,18 @@ async def send_tape(
     )
 
     return sent_tape
+
+
+async def get_public_tape(db: AsyncSession, public_token: str) -> Tape:
+    """Return a sent tape by its public token.
+
+    Raises:
+        TapeNotFoundError: If the tape does not exist or has not been sent yet.
+    """
+    tape_repository = TapeRepository(db)
+    tape = await tape_repository.get_by_public_token(public_token)
+
+    if tape is None or tape.status not in (TapeStatus.sent, TapeStatus.claimed):
+        raise TapeNotFoundError("Tape not found")
+
+    return tape

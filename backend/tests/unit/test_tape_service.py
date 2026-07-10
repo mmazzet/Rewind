@@ -338,3 +338,51 @@ async def test_send_tape_email_failure_raises(mock_db):
                 recipient_email="test@example.com",
                 message="Made this for you",
             )
+
+
+@pytest.mark.asyncio
+async def test_get_public_tape_success(mock_db):
+    mock_tape = MagicMock()
+    mock_tape.status = TapeStatus.sent
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_public_token = AsyncMock(return_value=mock_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        result = await tape_service.get_public_tape(
+            db=mock_db, public_token="some-token"
+        )
+
+    assert result.status == TapeStatus.sent
+
+
+@pytest.mark.asyncio
+async def test_get_public_tape_not_found(mock_db):
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_public_token = AsyncMock(return_value=None)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(TapeNotFoundError):
+            await tape_service.get_public_tape(db=mock_db, public_token="fake-token")
+
+
+@pytest.mark.asyncio
+async def test_get_public_tape_draft_not_accessible(mock_db):
+    mock_tape = MagicMock()
+    mock_tape.status = TapeStatus.draft
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_public_token = AsyncMock(return_value=mock_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(TapeNotFoundError):
+            await tape_service.get_public_tape(db=mock_db, public_token="some-token")

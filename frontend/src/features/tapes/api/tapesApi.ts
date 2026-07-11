@@ -1,4 +1,6 @@
 import apiClient from "@/api/client";
+import publicClient from "@/api/publicClient";
+
 import type {
   Tape,
   CreateTapeRequest,
@@ -48,7 +50,7 @@ export const tapesApi = {
   },
 
   getPublicTape: async (token: string): Promise<Tape> => {
-    const response = await apiClient.get<Tape>(`/tapes/public/${token}`);
+    const response = await publicClient.get<Tape>(`/tapes/public/${token}`);
     return response.data;
   },
 };

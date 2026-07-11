@@ -11,6 +11,8 @@ import { TrackList } from "./TrackList";
 import { toast } from "react-hot-toast";
 import { getErrorMessage } from "@/api/errorMessage";
 import { Cassette } from "./Cassette";
+import { useState } from "react";
+import { SendTapeModal } from "./SendTapeModal";
 
 export function TapeBuilderPage() {
   const { tapeId } = useParams<{ tapeId: string }>();
@@ -68,6 +70,8 @@ export function TapeBuilderPage() {
       toast.error(getErrorMessage(error, "Failed to mark tape as ready."));
     },
   });
+
+  const [showSendModal, setShowSendModal] = useState(false);
 
   function handleAddTrack(track: SpotifySearchResult, side: TrackSide) {
     addTrack({ track, side });
@@ -137,6 +141,24 @@ export function TapeBuilderPage() {
             {isMarkingReady ? "Saving..." : "Mark as ready"}
           </button>
         </div>
+      )}
+
+      {tape.status === "ready" && (
+        <div className="w-full max-w-md px-8">
+          <button
+            onClick={() => setShowSendModal(true)}
+            className="w-full py-2 px-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+          >
+            Send tape
+          </button>
+        </div>
+      )}
+
+      {showSendModal && (
+        <SendTapeModal
+          tapeId={tape.id}
+          onClose={() => setShowSendModal(false)}
+        />
       )}
     </div>
   );

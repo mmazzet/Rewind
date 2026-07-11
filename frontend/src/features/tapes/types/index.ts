@@ -46,3 +46,15 @@ export interface AddTrackRequest {
   side: TrackSide;
   position: number;
 }
+
+export interface SendTapeRequest {
+  recipient_email: string;
+  message?: string;
+}
+
+export interface SendTapeResponse {
+  id: number;
+  status: string;
+  public_token: string;
+  sent_at: string;
+}

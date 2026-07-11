@@ -1,5 +1,12 @@
 import apiClient from "@/api/client";
-import type { Tape, CreateTapeRequest, Track, AddTrackRequest } from "../types";
+import type {
+  Tape,
+  CreateTapeRequest,
+  Track,
+  AddTrackRequest,
+  SendTapeRequest,
+  SendTapeResponse,
+} from "../types";
 
 export const tapesApi = {
   createTape: async (data: CreateTapeRequest): Promise<Tape> => {
@@ -26,6 +33,22 @@ export const tapesApi = {
 
   markReady: async (tapeId: number): Promise<Tape> => {
     const response = await apiClient.patch<Tape>(`/tapes/${tapeId}/ready`);
+    return response.data;
+  },
+
+  sendTape: async (
+    tapeId: number,
+    data: SendTapeRequest,
+  ): Promise<SendTapeResponse> => {
+    const response = await apiClient.post<SendTapeResponse>(
+      `/tapes/${tapeId}/send`,
+      data,
+    );
+    return response.data;
+  },
+
+  getPublicTape: async (token: string): Promise<Tape> => {
+    const response = await apiClient.get<Tape>(`/tapes/public/${token}`);
     return response.data;
   },
 };

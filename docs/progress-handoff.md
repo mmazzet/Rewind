@@ -1,6 +1,6 @@
 # Rewind progress handoff (repo snapshot)
 
-Date: 2026-07-10
+Date: 2026-07-11
 Audience: another AI assistant resuming implementation
 Scope: current code + tests + docs present in repo
 
@@ -63,6 +63,7 @@ Scope: current code + tests + docs present in repo
 - add/remove tracks on side A/B
 - side remaining time display
 - mark-as-ready button
+- public tape page route/component
 - send tape flow (recipient email + optional message, success link, copy button)
 - Cassette visual component exists and updates label text from tracks.
 - Basic app-level and tape-builder-level error boundaries exist.
@@ -84,7 +85,6 @@ Scope: current code + tests + docs present in repo
 
 ### Frontend gaps relative to roadmap docs
 
-- No public tape page route/component found.
 - No inbox/outbox pages found.
 - No spotify connect/export UI found.
 - No email verification UI flow found.
@@ -100,7 +100,6 @@ Scope: current code + tests + docs present in repo
 - Treat backend phases through core tape building as mostly implemented (auth + tape create/get + tracks + mark ready + send + public read + spotify search).
 - Prioritize next feature slice from current gaps:
 
-1. Public tape frontend page.
-2. Inbox/outbox backend + frontend.
+1. Inbox/outbox backend + frontend.
 
 - Keep tests-first for new service logic, matching existing test style and fixtures.

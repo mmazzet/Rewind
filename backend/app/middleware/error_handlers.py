@@ -18,6 +18,7 @@ from app.core.exceptions import (
     TapeNotFoundError,
     TapeNotInDraftError,
     TapeNotReadyError,
+    TapeNotSentError,
     TrackNotFoundError,
 )
 
@@ -37,6 +38,7 @@ ERROR_MAP = {
     TapeHasNoTracksError: (422, "ValidationError"),
     TapeNotReadyError: (409, "Conflict"),
     EmailDeliveryError: (502, "BadGateway"),
+    TapeNotSentError: (409, "Conflict"),
 }
 
 

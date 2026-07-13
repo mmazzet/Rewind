@@ -8,6 +8,7 @@ from app.core.exceptions import (
     TapeNotFoundError,
     TapeNotInDraftError,
     TapeNotReadyError,
+    TapeNotSentError,
 )
 from app.models.tape import Tape, TapeStatus
 from app.repositories.tape_repository import TapeRepository
@@ -111,3 +112,38 @@ async def get_public_tape(db: AsyncSession, public_token: str) -> Tape:
         raise TapeNotFoundError("Tape not found")
 
     return tape
+
+
+async def get_sent_tapes(db: AsyncSession, user_id: int) -> list[Tape]:
+    """Return all sent tapes for the current user's outbox"""
+    tape_repository = TapeRepository(db)
+    return await tape_repository.get_sent_by_user(sender_id=user_id)
+
+
+async def get_received_tapes(db: AsyncSession, user_id: int) -> list[Tape]:
+    """Return all received tapes for the current user's inbox"""
+    tape_repository = TapeRepository(db)
+    return await tape_repository.get_received_by_user(recipient_id=user_id)
+
+
+async def archive_tape(db: AsyncSession, tape_id: int, user_id: int) -> Tape:
+    """Archive a sent tape. Only the sender can archive.
+
+    Raises:
+        TapeNotFoundError: If the tape does not exist.
+        NotAuthorisedError: If the user is not the sender.
+        TapeNotSentError: If the tape is not in sent status.
+    """
+    tape_repository = TapeRepository(db)
+    tape = await tape_repository.get_by_id(tape_id)
+
+    if tape is None:
+        raise TapeNotFoundError("Tape not found")
+
+    if tape.sender_id != user_id:
+        raise NotAuthorisedError("Not authorised")
+
+    if tape.status != TapeStatus.sent:
+        raise TapeNotSentError("Tape must be in sent status to archive")
+
+    return await tape_repository.update_status(tape, TapeStatus.archived)

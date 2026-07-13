@@ -58,3 +58,24 @@ class PublicTapeResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SentTapeListItem(BaseModel):
+    id: int
+    title: str
+    recipient_email: str
+    status: TapeStatus
+    sent_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReceivedTapeListItem(BaseModel):
+    id: int
+    title: str
+    sender_id: int
+    message: str | None
+    status: TapeStatus
+    sent_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

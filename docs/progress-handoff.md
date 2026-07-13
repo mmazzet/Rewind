@@ -28,6 +28,15 @@ Scope: current code + tests + docs present in repo
 - Send flow implemented: POST /tapes/{tape_id}/send.
 - Public tape read implemented: GET /tapes/public/{public_token} (no auth).
 
+### Inbox/outbox/archive (backend)
+
+- Implemented routes: GET /tapes/sent, GET /tapes/received, PATCH /tapes/{tape_id}/archive.
+- Repository methods added: get_sent_by_user, get_received_by_user.
+- New exception: TapeNotSentError, registered in ERROR_MAP.
+- New schemas: SentTapeListItem, ReceivedTapeListItem.
+- Route order corrected in tapes.py: static paths before dynamic paths.
+- Unit tests and integration tests for Phase 6 complete. One bug fixed: get_sent_by_user was including archived tapes in outbox results. Fixed by removing TapeStatus.archived from the status.in_() filter.
+
 ### Track domain (backend)
 
 - Implemented routes: POST /tapes/{tape_id}/tracks, DELETE /tapes/{tape_id}/tracks/{track_id}.
@@ -78,14 +87,13 @@ Scope: current code + tests + docs present in repo
 
 ### Backend/API gaps relative to roadmap docs
 
-- No inbox/outbox/archive endpoints found.
 - No email verification/claim flow found.
 - No spotify OAuth/export endpoints found.
 - No observability endpoints/integration found (/metrics, Sentry wiring, CI workflow details not found in app code).
 
 ### Frontend gaps relative to roadmap docs
 
-- No inbox/outbox pages found.
+- No inbox/outbox pages found on frontend (backend and tests complete).
 - No spotify connect/export UI found.
 - No email verification UI flow found.
 
@@ -100,6 +108,7 @@ Scope: current code + tests + docs present in repo
 - Treat backend phases through core tape building as mostly implemented (auth + tape create/get + tracks + mark ready + send + public read + spotify search).
 - Prioritize next feature slice from current gaps:
 
-1. Inbox/outbox backend + frontend.
+1. Inbox/outbox frontend: OutboxPage, InboxPage, navigation links, ErrorBoundary on PublicTapePage.
+2. Unit and integration tests for Phase 6 backend (archive logic + 3 new endpoints).
 
 - Keep tests-first for new service logic, matching existing test style and fixtures.

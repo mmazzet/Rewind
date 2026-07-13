@@ -82,9 +82,7 @@ class TapeRepository:
             select(Tape)
             .where(
                 Tape.sender_id == sender_id,
-                Tape.status.in_(
-                    [TapeStatus.sent, TapeStatus.claimed, TapeStatus.archived]
-                ),
+                Tape.status.in_([TapeStatus.sent, TapeStatus.claimed]),
             )
             .options(selectinload(Tape.tracks))
             .order_by(Tape.sent_at.desc())

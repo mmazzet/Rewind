@@ -75,3 +75,29 @@ class TapeRepository:
         await self.db.commit()
 
         return await self.get_by_id(tape.id)
+
+    async def get_sent_by_user(self, sender_id: int) -> list[Tape]:
+        """Return all non-draft tapes sent by this user, newest first."""
+        result = await self.db.execute(
+            select(Tape)
+            .where(
+                Tape.sender_id == sender_id,
+                Tape.status.in_([TapeStatus.sent, TapeStatus.claimed]),
+            )
+            .options(selectinload(Tape.tracks))
+            .order_by(Tape.sent_at.desc())
+        )
+        return list(result.scalars().all())
+
+    async def get_received_by_user(self, recipient_id: int) -> list[Tape]:
+        """Return all tapes received by this user, newest first."""
+        result = await self.db.execute(
+            select(Tape)
+            .where(
+                Tape.recipient_id == recipient_id,
+                Tape.status.in_([TapeStatus.sent, TapeStatus.claimed]),
+            )
+            .options(selectinload(Tape.tracks))
+            .order_by(Tape.sent_at.desc())
+        )
+        return list(result.scalars().all())

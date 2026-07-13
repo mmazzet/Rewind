@@ -75,3 +75,7 @@ class SpotifyUnavailableError(RewindError):
 
 class EmailDeliveryError(RewindError):
     pass
+
+
+class TapeNotSentError(RewindError):
+    pass

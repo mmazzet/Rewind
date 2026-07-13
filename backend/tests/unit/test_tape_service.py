@@ -9,6 +9,7 @@ from app.core.exceptions import (
     TapeNotFoundError,
     TapeNotInDraftError,
     TapeNotReadyError,
+    TapeNotSentError,
 )
 from app.models.tape import TapeStatus
 from app.services import tape_service
@@ -386,3 +387,78 @@ async def test_get_public_tape_draft_not_accessible(mock_db):
     ):
         with pytest.raises(TapeNotFoundError):
             await tape_service.get_public_tape(db=mock_db, public_token="some-token")
+
+
+@pytest.mark.asyncio
+async def test_archive_tape_not_found(mock_db):
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=None)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(TapeNotFoundError):
+            await tape_service.archive_tape(db=mock_db, tape_id=999, user_id=42)
+
+
+@pytest.mark.asyncio
+async def test_archive_tape_wrong_user(mock_db):
+    mock_tape = MagicMock()
+    mock_tape.sender_id = 99
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(NotAuthorisedError):
+            await tape_service.archive_tape(db=mock_db, tape_id=1, user_id=42)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "status",
+    [TapeStatus.draft, TapeStatus.ready, TapeStatus.archived],
+)
+async def test_archive_tape_not_sent(mock_db, status):
+    mock_tape = MagicMock()
+    mock_tape.sender_id = 42
+    mock_tape.status = status
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        with pytest.raises(TapeNotSentError):
+            await tape_service.archive_tape(db=mock_db, tape_id=1, user_id=42)
+
+
+@pytest.mark.asyncio
+async def test_archive_tape_success(mock_db):
+    mock_tape = MagicMock()
+    mock_tape.sender_id = 42
+    mock_tape.status = TapeStatus.sent
+
+    mock_archived_tape = MagicMock()
+    mock_archived_tape.status = TapeStatus.archived
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_id = AsyncMock(return_value=mock_tape)
+    mock_repo_instance.update_status = AsyncMock(return_value=mock_archived_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        result = await tape_service.archive_tape(db=mock_db, tape_id=1, user_id=42)
+
+    assert result.status == TapeStatus.archived
+    mock_repo_instance.update_status.assert_called_once_with(
+        mock_tape, TapeStatus.archived
+    )

@@ -348,3 +348,137 @@ async def test_get_public_tape_draft_not_accessible(client: AsyncClient):
     response = await client.get(f"/api/v1/tapes/public/{tape['id']}")
 
     assert response.status_code == 404
+
+
+# --- GET /api/v1/tapes/sent ---
+
+
+async def test_get_sent_tapes_empty(client: AsyncClient):
+    await register_and_login(client)
+    response = await client.get("/api/v1/tapes/sent")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_get_sent_tapes_returns_sent_tapes(client: AsyncClient):
+    await register_and_login(client)
+    await helper_send_tape(client)
+
+    response = await client.get("/api/v1/tapes/sent")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["status"] == "sent"
+    assert data[0]["recipient_email"] == "friend@example.com"
+
+
+async def test_get_sent_tapes_excludes_drafts(client: AsyncClient):
+    await register_and_login(client)
+    await create_tape(client)  # draft, never sent
+
+    response = await client.get("/api/v1/tapes/sent")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_get_sent_tapes_not_authenticated(client: AsyncClient):
+    response = await client.get("/api/v1/tapes/sent")
+    assert response.status_code == 401
+
+
+async def test_get_sent_tapes_only_returns_own_tapes(client: AsyncClient):
+    # User 1 sends a tape
+    await register_and_login(client, email="user1@example.com")
+    await helper_send_tape(client)
+
+    # User 2 logs in and checks their outbox
+    await client.post("/api/v1/auth/logout")
+    await register_and_login(client, email="user2@example.com")
+
+    response = await client.get("/api/v1/tapes/sent")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+# --- GET /api/v1/tapes/received ---
+
+
+async def test_get_received_tapes_empty(client: AsyncClient):
+    await register_and_login(client)
+    response = await client.get("/api/v1/tapes/received")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_get_received_tapes_not_authenticated(client: AsyncClient):
+    response = await client.get("/api/v1/tapes/received")
+    assert response.status_code == 401
+
+
+async def test_get_received_tapes_returns_claimed_tapes(client: AsyncClient):
+    # This tests the query filter — recipient_id must be set.
+    # In the current MVP, claiming is not yet implemented, so this stays empty
+    # until Phase 7. This test documents that behaviour explicitly.
+    await register_and_login(client)
+    response = await client.get("/api/v1/tapes/received")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+# --- PATCH /api/v1/tapes/{tape_id}/archive ---
+
+
+async def test_archive_tape_success(client: AsyncClient):
+    await register_and_login(client)
+    sent = await helper_send_tape(client)
+    tape_id = sent["id"]
+
+    response = await client.patch(f"/api/v1/tapes/{tape_id}/archive")
+    assert response.status_code == 200
+    assert response.json()["status"] == "archived"
+
+
+async def test_archive_tape_not_authenticated(client: AsyncClient):
+    response = await client.patch("/api/v1/tapes/1/archive")
+    assert response.status_code == 401
+
+
+async def test_archive_tape_not_found(client: AsyncClient):
+    await register_and_login(client)
+    response = await client.patch("/api/v1/tapes/999999/archive")
+    assert response.status_code == 404
+    assert response.json()["message"] == "Tape not found"
+
+
+async def test_archive_tape_wrong_user(client: AsyncClient):
+    await register_and_login(client)
+    sent = await helper_send_tape(client)
+    tape_id = sent["id"]
+
+    await client.post("/api/v1/auth/logout")
+    await register_and_login(client, email="user2@example.com")
+
+    response = await client.patch(f"/api/v1/tapes/{tape_id}/archive")
+    assert response.status_code == 403
+    assert response.json()["message"] == "Not authorised"
+
+
+async def test_archive_tape_not_sent(client: AsyncClient):
+    await register_and_login(client)
+    tape = await create_tape(client)  # still draft
+
+    response = await client.patch(f"/api/v1/tapes/{tape['id']}/archive")
+    assert response.status_code == 409
+    assert response.json()["message"] == "Tape must be in sent status to archive"
+
+
+async def test_archive_tape_removes_from_sent_list(client: AsyncClient):
+    await register_and_login(client)
+    sent = await helper_send_tape(client)
+    tape_id = sent["id"]
+
+    await client.patch(f"/api/v1/tapes/{tape_id}/archive")
+
+    response = await client.get("/api/v1/tapes/sent")
+    assert response.status_code == 200
+    assert response.json() == []

@@ -6,8 +6,10 @@ from app.db.session import get_db
 from app.schemas.tape import (
     CreateTapeRequest,
     PublicTapeResponse,
+    ReceivedTapeListItem,
     SendTapeRequest,
     SendTapeResponse,
+    SentTapeListItem,
     TapeResponse,
 )
 from app.services import tape_service
@@ -28,6 +30,32 @@ async def create_tape(
         length_minutes=body.length_minutes,
         sender_id=user_id,
     )
+    return tape
+
+
+@router.get("/sent", response_model=list[SentTapeListItem])
+async def get_sent_tapes(
+    db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_user_id_from_cookie),
+):
+    return await tape_service.get_sent_tapes(db=db, user_id=user_id)
+
+
+@router.get("/received", response_model=list[ReceivedTapeListItem])
+async def get_received_tapes(
+    db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_user_id_from_cookie),
+):
+    return await tape_service.get_received_tapes(db=db, user_id=user_id)
+
+
+@router.get("/public/{public_token}", response_model=PublicTapeResponse)
+async def get_public_tape(
+    public_token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return a sent tape by its public token. No authentication required."""
+    tape = await tape_service.get_public_tape(db=db, public_token=public_token)
     return tape
 
 
@@ -68,11 +96,10 @@ async def send_tape(
     return tape
 
 
-@router.get("/public/{public_token}", response_model=PublicTapeResponse)
-async def get_public_tape(
-    public_token: str,
+@router.patch("/{tape_id}/archive", response_model=TapeResponse)
+async def archive_tape(
+    tape_id: int,
     db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_user_id_from_cookie),
 ):
-    """Return a sent tape by its public token. No authentication required."""
-    tape = await tape_service.get_public_tape(db=db, public_token=public_token)
-    return tape
+    return await tape_service.archive_tape(db=db, tape_id=tape_id, user_id=user_id)

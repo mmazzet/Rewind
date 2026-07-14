@@ -12,6 +12,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import AppErrorFallback from "@/components/AppErrorFallback";
 import TapeBuilderErrorFallback from "@/components/TapeBuilderErrorFallback";
 import PublicTapePage from "@/features/tapes/components/PublicTapePage";
+import OutboxPage from "@/features/outbox/components/OutboxPage";
+import InboxPage from "@/features/inbox/components/InboxPage";
 
 function HomePage() {
   const setUser = useAuthStore((state) => state.setUser);
@@ -94,11 +96,33 @@ function App() {
               }
             />
             <Route
+              path="/outbox"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={null}>
+                    <OutboxPage />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inbox"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={null}>
+                    <InboxPage />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/tape/:token"
               element={
-                <Suspense fallback={null}>
-                  <PublicTapePage />
-                </Suspense>
+                <ErrorBoundary fallback={() => <AppErrorFallback />}>
+                  <Suspense fallback={null}>
+                    <PublicTapePage />
+                  </Suspense>
+                </ErrorBoundary>
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />

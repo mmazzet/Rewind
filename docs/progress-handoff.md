@@ -1,6 +1,6 @@
 # Rewind progress handoff (repo snapshot)
 
-Date: 2026-07-11
+Date: 2026-07-14
 Audience: another AI assistant resuming implementation
 Scope: current code + tests + docs present in repo
 
@@ -76,6 +76,10 @@ Scope: current code + tests + docs present in repo
 - send tape flow (recipient email + optional message, success link, copy button)
 - Cassette visual component exists and updates label text from tracks.
 - Basic app-level and tape-builder-level error boundaries exist.
+- InboxPage at /inbox: lists received tapes, empty state, protected route.
+- OutboxPage at /outbox: lists sent tapes, archive button, optimistic invalidation via React Query.
+- PublicTapePage wrapped in ErrorBoundary — 404 on invalid token now shows error fallback.
+- Both API layers use plain array responses (backend does not return paginated envelope).
 
 ### Tests implemented
 
@@ -93,7 +97,6 @@ Scope: current code + tests + docs present in repo
 
 ### Frontend gaps relative to roadmap docs
 
-- No inbox/outbox pages found on frontend (backend and tests complete).
 - No spotify connect/export UI found.
 - No email verification UI flow found.
 
@@ -102,13 +105,3 @@ Scope: current code + tests + docs present in repo
 - backend/README.md exists but is empty.
 - Planning docs describe many future phases not yet present in code.
 - Some tests/comments indicate earlier assumptions (e.g., historical note saying PATCH /ready did not exist), but route now exists.
-
-## Resume hints for next chat
-
-- Treat backend phases through core tape building as mostly implemented (auth + tape create/get + tracks + mark ready + send + public read + spotify search).
-- Prioritize next feature slice from current gaps:
-
-1. Inbox/outbox frontend: OutboxPage, InboxPage, navigation links, ErrorBoundary on PublicTapePage.
-2. Unit and integration tests for Phase 6 backend (archive logic + 3 new endpoints).
-
-- Keep tests-first for new service logic, matching existing test style and fixtures.

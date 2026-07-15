@@ -14,25 +14,13 @@ import TapeBuilderErrorFallback from "@/components/TapeBuilderErrorFallback";
 import PublicTapePage from "@/features/tapes/components/PublicTapePage";
 import OutboxPage from "@/features/outbox/components/OutboxPage";
 import InboxPage from "@/features/inbox/components/InboxPage";
+import Nav from "@/components/Nav";
 
-function HomePage() {
-  const setUser = useAuthStore((state) => state.setUser);
-  const user = useAuthStore((state) => state.user);
-
-  const handleLogout = async () => {
-    await authApi.logout();
-    setUser(null);
-  };
-
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="p-8">
-      <p className="mb-4">Logged in as: {user?.email}</p>
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-      >
-        Log out
-      </button>
+    <div className="min-h-screen bg-gray-50">
+      <Nav />
+      <main>{children}</main>
     </div>
   );
 }
@@ -69,7 +57,7 @@ function App() {
               path="/"
               element={
                 <ProtectedRoute>
-                  <HomePage />
+                  <Navigate to="/inbox" replace />
                 </ProtectedRoute>
               }
             />
@@ -77,7 +65,9 @@ function App() {
               path="/tapes/create"
               element={
                 <ProtectedRoute>
-                  <CreateTapePage />
+                  <ProtectedLayout>
+                    <CreateTapePage />
+                  </ProtectedLayout>
                 </ProtectedRoute>
               }
             />
@@ -85,13 +75,15 @@ function App() {
               path="/tapes/:tapeId"
               element={
                 <ProtectedRoute>
-                  <ErrorBoundary
-                    fallback={(error) => (
-                      <TapeBuilderErrorFallback error={error} />
-                    )}
-                  >
-                    <TapeBuilderPage />
-                  </ErrorBoundary>
+                  <ProtectedLayout>
+                    <ErrorBoundary
+                      fallback={(error) => (
+                        <TapeBuilderErrorFallback error={error} />
+                      )}
+                    >
+                      <TapeBuilderPage />
+                    </ErrorBoundary>
+                  </ProtectedLayout>
                 </ProtectedRoute>
               }
             />
@@ -99,9 +91,11 @@ function App() {
               path="/outbox"
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={null}>
-                    <OutboxPage />
-                  </Suspense>
+                  <ProtectedLayout>
+                    <Suspense fallback={null}>
+                      <OutboxPage />
+                    </Suspense>
+                  </ProtectedLayout>
                 </ProtectedRoute>
               }
             />
@@ -109,9 +103,11 @@ function App() {
               path="/inbox"
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={null}>
-                    <InboxPage />
-                  </Suspense>
+                  <ProtectedLayout>
+                    <Suspense fallback={null}>
+                      <InboxPage />
+                    </Suspense>
+                  </ProtectedLayout>
                 </ProtectedRoute>
               }
             />

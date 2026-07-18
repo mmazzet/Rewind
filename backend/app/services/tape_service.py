@@ -1,5 +1,6 @@
 import uuid
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
@@ -147,3 +148,20 @@ async def archive_tape(db: AsyncSession, tape_id: int, user_id: int) -> Tape:
         raise TapeNotSentError("Tape must be in sent status to archive")
 
     return await tape_repository.update_status(tape, TapeStatus.archived)
+
+
+async def claim_tapes_for_email(db: AsyncSession, user) -> None:
+    """Find all sent tapes addressed to this user's email and claim them.
+
+    Args:
+        db: Database session.
+        user: The newly verified user.
+    """
+    tape_repository = TapeRepository(db)
+    tapes = await tape_repository.get_by_recipient_email(user.email)
+
+    for tape in tapes:
+        tape.recipient_id = user.id
+        await tape_repository.update_status(tape, TapeStatus.claimed)
+
+    logger.info("Claimed {} tape(s) for user {}", len(tapes), user.id)

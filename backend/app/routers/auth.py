@@ -12,8 +12,14 @@ from app.core.security import (
     set_csrf_cookie,
 )
 from app.db.session import get_db
-from app.schemas.auth import LoginRequest, RegisterRequest, UserResponse
-from app.services import auth_service
+from app.schemas.auth import (
+    LoginRequest,
+    RegisterRequest,
+    UserResponse,
+    VerifyEmailRequest,
+)
+from app.services import auth_service, tape_service
+from app.services.email_service import email_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -24,7 +30,7 @@ async def register(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
-    user = await auth_service.register(db, body.email, body.password)
+    user = await auth_service.register(db, body.email, body.password, email_service)
     token = create_access_token(user.id)
     set_auth_cookie(response, token)
     csrf_token = generate_csrf_token()
@@ -56,4 +62,13 @@ async def me(
     user_id: int = Depends(get_user_id_from_cookie),
 ):
     user = await auth_service.get_current_user(db, user_id)
+    return user
+
+
+@router.post("/verify-email", response_model=UserResponse)
+async def verify_email(
+    body: VerifyEmailRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    user = await auth_service.verify_email(db, body.token, tape_service)
     return user

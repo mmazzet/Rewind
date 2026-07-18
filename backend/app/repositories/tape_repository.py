@@ -101,3 +101,15 @@ class TapeRepository:
             .order_by(Tape.sent_at.desc())
         )
         return list(result.scalars().all())
+
+    async def get_by_recipient_email(self, email: str) -> list[Tape]:
+        """Return all sent tapes addressed to this email, not yet claimed."""
+        result = await self.db.execute(
+            select(Tape)
+            .where(
+                Tape.recipient_email == email,
+                Tape.status == TapeStatus.sent,
+            )
+            .options(selectinload(Tape.tracks))
+        )
+        return list(result.scalars().all())

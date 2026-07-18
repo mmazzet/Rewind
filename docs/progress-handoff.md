@@ -20,6 +20,9 @@ Scope: current code + tests + docs present in repo
 - Password hashing/verification uses Argon2.
 - JWT cookie auth is implemented (httpOnly access_token cookie).
 - CSRF token cookie + middleware validation is implemented for authenticated state-changing requests.
+- Email verification flow implemented: verification token generated on register, stored on User, sent via EmailService.
+- POST /auth/verify-email implemented: validates token, marks user verified, triggers tape claiming.
+- Tape claiming implemented in TapeService: claim_tapes_for_email sets recipient_id and status to claimed for all sent tapes matching the user's email.
 
 ### Tape domain (backend)
 
@@ -80,6 +83,9 @@ Scope: current code + tests + docs present in repo
 - OutboxPage at /outbox: lists sent tapes, archive button, optimistic invalidation via React Query.
 - PublicTapePage wrapped in ErrorBoundary — 404 on invalid token now shows error fallback.
 - Both API layers use plain array responses (backend does not return paginated envelope).
+- Nav component at src/components/Nav.tsx: links to inbox, outbox, new tape, logout.
+- ProtectedLayout in App.tsx: wraps all protected routes, renders Nav above page content.
+- / redirects to /inbox. Public tape page has no nav.
 
 ### Tests implemented
 
@@ -91,7 +97,6 @@ Scope: current code + tests + docs present in repo
 
 ### Backend/API gaps relative to roadmap docs
 
-- No email verification/claim flow found.
 - No spotify OAuth/export endpoints found.
 - No observability endpoints/integration found (/metrics, Sentry wiring, CI workflow details not found in app code).
 
@@ -99,6 +104,9 @@ Scope: current code + tests + docs present in repo
 
 - No spotify connect/export UI found.
 - No email verification UI flow found.
+- Phase 7 tests for verify-email and claiming not yet written.
+- Second claiming trigger (claim at send time for already-verified users) not yet implemented.
+- Phase 7 frontend not yet started.
 
 ### Documentation/consistency gaps
 

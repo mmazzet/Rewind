@@ -12,6 +12,7 @@ from app.core.exceptions import (
     TapeNotSentError,
 )
 from app.models.tape import Tape, TapeStatus
+from app.repositories import user_repository
 from app.repositories.tape_repository import TapeRepository
 from app.services.email_service import email_service
 
@@ -96,6 +97,15 @@ async def send_tape(
         recipient=recipient_email,
         public_token=public_token,
     )
+
+    # If the recipient already has a verified account, claim the tape immediately.
+    recipient = await user_repository.get_user_by_email(db, recipient_email)
+    if recipient and recipient.email_verified:
+        sent_tape.recipient_id = recipient.id
+        sent_tape = await tape_repository.update_status(sent_tape, TapeStatus.claimed)
+        logger.info(
+            "Tape {} claimed immediately for existing user {}", tape_id, recipient.id
+        )
 
     return sent_tape
 

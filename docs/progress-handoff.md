@@ -23,6 +23,8 @@ Scope: current code + tests + docs present in repo
 - Email verification flow implemented: verification token generated on register, stored on User, sent via EmailService.
 - POST /auth/verify-email implemented: validates token, marks user verified, triggers tape claiming.
 - Tape claiming implemented in TapeService: claim_tapes_for_email sets recipient_id and status to claimed for all sent tapes matching the user's email.
+- Second claiming trigger implemented in send_tape: if recipient already has a verified account, tape is claimed immediately at send time.
+- POST /auth/verify-email now returns {"message": "Email verified"} instead of user object, matching API design.
 
 ### Tape domain (backend)
 
@@ -104,9 +106,7 @@ Scope: current code + tests + docs present in repo
 
 - No spotify connect/export UI found.
 - No email verification UI flow found.
-- Phase 7 tests for verify-email and claiming not yet written.
-- Second claiming trigger (claim at send time for already-verified users) not yet implemented.
-- Phase 7 frontend not yet started.
+- Phase 7 frontend not yet started: verify-email landing page and post-registration message needed.
 
 ### Documentation/consistency gaps
 

@@ -285,6 +285,10 @@ async def test_send_tape_success(mock_db):
             "app.services.tape_service.email_service.send_tape_email",
             new_callable=AsyncMock,
         ) as mock_send_email,
+        patch(
+            "app.services.tape_service.user_repository.get_user_by_email",
+            new=AsyncMock(return_value=None),
+        ),
     ):
         result = await tape_service.send_tape(
             db=mock_db,

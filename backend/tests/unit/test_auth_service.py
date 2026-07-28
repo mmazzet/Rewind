@@ -6,6 +6,7 @@ from argon2.exceptions import VerifyMismatchError
 from app.core.exceptions import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
+    InvalidVerificationTokenError,
     PasswordTooShortError,
 )
 from app.services import auth_service
@@ -25,8 +26,15 @@ def existing_user():
     return user
 
 
+@pytest.fixture
+def mock_email_service():
+    service = AsyncMock()
+    service.send_verification_email = AsyncMock()
+    return service
+
+
 @pytest.mark.asyncio
-async def test_register_success(mock_db):
+async def test_register_success(mock_db, mock_email_service):
     # Arrange: no existing user, create_user returns a new user
     new_user = MagicMock()
     new_user.id = 1
@@ -42,7 +50,9 @@ async def test_register_success(mock_db):
         patch("app.services.auth_service.user_repository.create_user", new=mock_create),
     ):
 
-        result = await auth_service.register(mock_db, "new@example.com", "Password123")
+        result = await auth_service.register(
+            mock_db, "new@example.com", "Password123", mock_email_service
+        )
 
     assert result.email == "new@example.com"
     # verify the password was hashed, not stored plain
@@ -53,15 +63,17 @@ async def test_register_success(mock_db):
 
 
 @pytest.mark.asyncio
-async def test_register_password_too_short(mock_db):
+async def test_register_password_too_short(mock_db, mock_email_service):
     with pytest.raises(PasswordTooShortError) as exc_info:
-        await auth_service.register(mock_db, "new@example.com", "short")
+        await auth_service.register(
+            mock_db, "new@example.com", "short", mock_email_service
+        )
 
     assert exc_info.value.message == "Password must be at least 8 characters"
 
 
 @pytest.mark.asyncio
-async def test_register_existing_email(mock_db):
+async def test_register_existing_email(mock_db, mock_email_service):
     existing_user = MagicMock()
     existing_user.id = 1
     existing_user.email = "new@example.com"
@@ -74,7 +86,9 @@ async def test_register_existing_email(mock_db):
         pytest.raises(EmailAlreadyRegisteredError) as exc_info,
     ):
 
-        await auth_service.register(mock_db, "new@example.com", "123Password")
+        await auth_service.register(
+            mock_db, "new@example.com", "123Password", mock_email_service
+        )
 
     assert exc_info.value.message == "Email already registered"
 
@@ -138,3 +152,45 @@ async def test_login_wrong_password(mock_db, existing_user):
         await auth_service.login(mock_db, "test@example.com", "wrongpassword")
 
     assert exc_info.value.message == "Invalid credentials"
+
+
+@pytest.mark.asyncio
+async def test_verify_email_success(mock_db):
+    mock_user = MagicMock()
+    mock_user.id = 1
+    mock_user.email = "test@example.com"
+
+    mock_tape_service = AsyncMock()
+
+    with (
+        patch(
+            "app.services.auth_service.user_repository.get_user_by_verification_token",
+            new=AsyncMock(return_value=mock_user),
+        ),
+        patch(
+            "app.services.auth_service.user_repository.mark_user_verified",
+            new=AsyncMock(return_value=mock_user),
+        ),
+    ):
+        result = await auth_service.verify_email(
+            mock_db, "valid-token", mock_tape_service
+        )
+
+    assert result.email == "test@example.com"
+    mock_tape_service.claim_tapes_for_email.assert_awaited_once_with(mock_db, mock_user)
+
+
+@pytest.mark.asyncio
+async def test_verify_email_invalid_token(mock_db):
+    mock_tape_service = AsyncMock()
+
+    with (
+        patch(
+            "app.services.auth_service.user_repository.get_user_by_verification_token",
+            new=AsyncMock(return_value=None),
+        ),
+        pytest.raises(InvalidVerificationTokenError),
+    ):
+        await auth_service.verify_email(mock_db, "bad-token", mock_tape_service)
+
+    mock_tape_service.claim_tapes_for_email.assert_not_awaited()

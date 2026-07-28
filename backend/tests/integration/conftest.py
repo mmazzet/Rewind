@@ -77,8 +77,14 @@ async def fake_spotify_client():
 
 @pytest_asyncio.fixture(autouse=True)
 async def fake_email_service():
-    with patch(
-        "app.services.tape_service.email_service.send_tape_email",
-        new_callable=AsyncMock,
-    ) as mock_send:
-        yield mock_send
+    with (
+        patch(
+            "app.services.tape_service.email_service.send_tape_email",
+            new_callable=AsyncMock,
+        ) as mock_send_tape,
+        patch(
+            "app.routers.auth.email_service.send_verification_email",
+            new_callable=AsyncMock,
+        ),
+    ):
+        yield mock_send_tape

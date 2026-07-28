@@ -285,6 +285,10 @@ async def test_send_tape_success(mock_db):
             "app.services.tape_service.email_service.send_tape_email",
             new_callable=AsyncMock,
         ) as mock_send_email,
+        patch(
+            "app.services.tape_service.user_repository.get_user_by_email",
+            new=AsyncMock(return_value=None),
+        ),
     ):
         result = await tape_service.send_tape(
             db=mock_db,
@@ -462,3 +466,73 @@ async def test_archive_tape_success(mock_db):
     mock_repo_instance.update_status.assert_called_once_with(
         mock_tape, TapeStatus.archived
     )
+
+
+@pytest.mark.asyncio
+async def test_claim_tapes_for_email_success(mock_db):
+    mock_user = MagicMock()
+    mock_user.id = 42
+    mock_user.email = "maria@example.com"
+
+    mock_tape = MagicMock()
+    mock_tape.status = TapeStatus.sent
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_recipient_email = AsyncMock(return_value=[mock_tape])
+    mock_repo_instance.update_status = AsyncMock(return_value=mock_tape)
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        await tape_service.claim_tapes_for_email(db=mock_db, user=mock_user)
+
+    assert mock_tape.recipient_id == 42
+    mock_repo_instance.update_status.assert_awaited_once_with(
+        mock_tape, TapeStatus.claimed
+    )
+
+
+@pytest.mark.asyncio
+async def test_claim_tapes_for_email_no_tapes(mock_db):
+    mock_user = MagicMock()
+    mock_user.id = 42
+    mock_user.email = "maria@example.com"
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_recipient_email = AsyncMock(return_value=[])
+    mock_repo_instance.update_status = AsyncMock()
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        await tape_service.claim_tapes_for_email(db=mock_db, user=mock_user)
+
+    mock_repo_instance.update_status.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_claim_tapes_for_email_multiple_tapes(mock_db):
+    mock_user = MagicMock()
+    mock_user.id = 42
+    mock_user.email = "maria@example.com"
+
+    mock_tape_1 = MagicMock()
+    mock_tape_2 = MagicMock()
+
+    mock_repo_instance = MagicMock()
+    mock_repo_instance.get_by_recipient_email = AsyncMock(
+        return_value=[mock_tape_1, mock_tape_2]
+    )
+    mock_repo_instance.update_status = AsyncMock()
+
+    with patch(
+        "app.services.tape_service.TapeRepository",
+        return_value=mock_repo_instance,
+    ):
+        await tape_service.claim_tapes_for_email(db=mock_db, user=mock_user)
+
+    assert mock_tape_1.recipient_id == 42
+    assert mock_tape_2.recipient_id == 42
+    assert mock_repo_instance.update_status.await_count == 2

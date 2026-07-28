@@ -25,6 +25,10 @@ class NotAuthenticatedError(RewindError):
     pass
 
 
+class InvalidVerificationTokenError(RewindError):
+    pass
+
+
 # --- Tapes ---
 
 

@@ -20,6 +20,11 @@ Scope: current code + tests + docs present in repo
 - Password hashing/verification uses Argon2.
 - JWT cookie auth is implemented (httpOnly access_token cookie).
 - CSRF token cookie + middleware validation is implemented for authenticated state-changing requests.
+- Email verification flow implemented: verification token generated on register, stored on User, sent via EmailService.
+- POST /auth/verify-email implemented: validates token, marks user verified, triggers tape claiming.
+- Tape claiming implemented in TapeService: claim_tapes_for_email sets recipient_id and status to claimed for all sent tapes matching the user's email.
+- Second claiming trigger implemented in send_tape: if recipient already has a verified account, tape is claimed immediately at send time.
+- POST /auth/verify-email now returns {"message": "Email verified"} instead of user object, matching API design.
 
 ### Tape domain (backend)
 
@@ -80,6 +85,9 @@ Scope: current code + tests + docs present in repo
 - OutboxPage at /outbox: lists sent tapes, archive button, optimistic invalidation via React Query.
 - PublicTapePage wrapped in ErrorBoundary — 404 on invalid token now shows error fallback.
 - Both API layers use plain array responses (backend does not return paginated envelope).
+- Nav component at src/components/Nav.tsx: links to inbox, outbox, new tape, logout.
+- ProtectedLayout in App.tsx: wraps all protected routes, renders Nav above page content.
+- / redirects to /inbox. Public tape page has no nav.
 
 ### Tests implemented
 
@@ -91,7 +99,6 @@ Scope: current code + tests + docs present in repo
 
 ### Backend/API gaps relative to roadmap docs
 
-- No email verification/claim flow found.
 - No spotify OAuth/export endpoints found.
 - No observability endpoints/integration found (/metrics, Sentry wiring, CI workflow details not found in app code).
 
@@ -99,9 +106,10 @@ Scope: current code + tests + docs present in repo
 
 - No spotify connect/export UI found.
 - No email verification UI flow found.
+- Phase 7 frontend not yet started: verify-email landing page and post-registration message needed.
 
 ### Documentation/consistency gaps
 
-- backend/README.md exists but is empty.
+- README.md added in wip.
 - Planning docs describe many future phases not yet present in code.
 - Some tests/comments indicate earlier assumptions (e.g., historical note saying PATCH /ready did not exist), but route now exists.

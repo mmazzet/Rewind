@@ -29,5 +29,25 @@ class EmailService:
             logger.error("Failed to send tape email to {}: {}", recipient, str(e))
             raise EmailDeliveryError("Could not send tape email")
 
+    async def send_verification_email(self, recipient: str, token: str) -> None:
+        verify_url = f"{settings.public_base_url}/verify-email?token={token}"
+
+        logger.info("Sending verification email to {}", recipient)
+
+        params = {
+            "from": "onboarding@resend.dev",
+            "to": recipient,
+            "subject": "Verify your Rewind email",
+            "html": f"<p>Verify your email: <a href='{verify_url}'>Click here</a>.</p>",
+        }
+
+        try:
+            await asyncio.to_thread(resend.Emails.send, params)
+        except Exception as e:
+            logger.error(
+                "Failed to send verification email to {}: {}", recipient, str(e)
+            )
+            raise EmailDeliveryError("Could not send verification email")
+
 
 email_service = EmailService()

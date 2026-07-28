@@ -1,6 +1,17 @@
 from httpx import AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.core.exceptions import EmailDeliveryError
+
+TEST_DATABASE_URL = "postgresql+asyncpg://rewind:rewind@db:5432/rewind_test"
+_engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+TestSessionLocal = sessionmaker(
+    bind=_engine, class_=AsyncSession, expire_on_commit=False
+)
+
 
 # --- Helper ---
 
@@ -482,3 +493,80 @@ async def test_archive_tape_removes_from_sent_list(client: AsyncClient):
     response = await client.get("/api/v1/tapes/sent")
     assert response.status_code == 200
     assert response.json() == []
+
+
+async def test_send_tape_claims_immediately_for_verified_recipient(client):
+    # register and verify maria first
+    await client.post(
+        "/api/v1/auth/register",
+        json={"email": "maria@example.com", "password": "Password123"},
+    )
+
+    async with TestSessionLocal() as session:
+        result = await session.execute(
+            text(
+                "SELECT verification_token FROM users WHERE email = 'maria@example.com'"
+            )
+        )
+        token = result.scalar_one()
+
+    await client.post(
+        "/api/v1/auth/verify-email",
+        json={"token": token},
+    )
+
+    # now register the sender and send maria a tape
+    await client.post(
+        "/api/v1/auth/register",
+        json={"email": "sender@example.com", "password": "Password123"},
+    )
+    await client.post(
+        "/api/v1/auth/login",
+        json={"email": "sender@example.com", "password": "Password123"},
+    )
+    csrf_token = client.cookies.get("csrf_token")
+
+    tape_response = await client.post(
+        "/api/v1/tapes",
+        json={
+            "title": "Mix for Maria",
+            "cassette_style": "classic",
+            "length_minutes": 60,
+        },
+        headers={"X-CSRF-Token": csrf_token},
+    )
+    tape_id = tape_response.json()["id"]
+
+    await client.post(
+        f"/api/v1/tapes/{tape_id}/tracks",
+        json={
+            "spotify_track_id": "abc123",
+            "title": "Song A",
+            "artist": "Artist A",
+            "duration_seconds": 200,
+            "side": "A",
+            "position": 1,
+        },
+        headers={"X-CSRF-Token": csrf_token},
+    )
+    await client.patch(
+        f"/api/v1/tapes/{tape_id}/ready",
+        headers={"X-CSRF-Token": csrf_token},
+    )
+    await client.post(
+        f"/api/v1/tapes/{tape_id}/send",
+        json={"recipient_email": "maria@example.com", "message": "For you"},
+        headers={"X-CSRF-Token": csrf_token},
+    )
+    await client.post("/api/v1/auth/logout")
+
+    # log in as maria and check her inbox
+    await client.post(
+        "/api/v1/auth/login",
+        json={"email": "maria@example.com", "password": "Password123"},
+    )
+    inbox_response = await client.get("/api/v1/tapes/received")
+    assert inbox_response.status_code == 200
+    tapes = inbox_response.json()
+    assert len(tapes) == 1
+    assert tapes[0]["title"] == "Mix for Maria"

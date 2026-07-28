@@ -7,6 +7,7 @@ from app.core.exceptions import (
     EmailAlreadyRegisteredError,
     EmailDeliveryError,
     InvalidCredentialsError,
+    InvalidVerificationTokenError,
     NotAuthenticatedError,
     NotAuthorisedError,
     PasswordTooShortError,
@@ -39,6 +40,7 @@ ERROR_MAP = {
     TapeNotReadyError: (409, "Conflict"),
     EmailDeliveryError: (502, "BadGateway"),
     TapeNotSentError: (409, "Conflict"),
+    InvalidVerificationTokenError: (400, "BadRequest"),
 }
 
 

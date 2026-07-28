@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
@@ -20,3 +20,5 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)

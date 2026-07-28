@@ -6,6 +6,7 @@ from argon2.exceptions import VerifyMismatchError
 from app.core.exceptions import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
+    InvalidVerificationTokenError,
     PasswordTooShortError,
 )
 from app.services import auth_service
@@ -151,3 +152,45 @@ async def test_login_wrong_password(mock_db, existing_user):
         await auth_service.login(mock_db, "test@example.com", "wrongpassword")
 
     assert exc_info.value.message == "Invalid credentials"
+
+
+@pytest.mark.asyncio
+async def test_verify_email_success(mock_db):
+    mock_user = MagicMock()
+    mock_user.id = 1
+    mock_user.email = "test@example.com"
+
+    mock_tape_service = AsyncMock()
+
+    with (
+        patch(
+            "app.services.auth_service.user_repository.get_user_by_verification_token",
+            new=AsyncMock(return_value=mock_user),
+        ),
+        patch(
+            "app.services.auth_service.user_repository.mark_user_verified",
+            new=AsyncMock(return_value=mock_user),
+        ),
+    ):
+        result = await auth_service.verify_email(
+            mock_db, "valid-token", mock_tape_service
+        )
+
+    assert result.email == "test@example.com"
+    mock_tape_service.claim_tapes_for_email.assert_awaited_once_with(mock_db, mock_user)
+
+
+@pytest.mark.asyncio
+async def test_verify_email_invalid_token(mock_db):
+    mock_tape_service = AsyncMock()
+
+    with (
+        patch(
+            "app.services.auth_service.user_repository.get_user_by_verification_token",
+            new=AsyncMock(return_value=None),
+        ),
+        pytest.raises(InvalidVerificationTokenError),
+    ):
+        await auth_service.verify_email(mock_db, "bad-token", mock_tape_service)
+
+    mock_tape_service.claim_tapes_for_email.assert_not_awaited()

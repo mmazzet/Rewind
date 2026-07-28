@@ -110,6 +110,6 @@ Scope: current code + tests + docs present in repo
 
 ### Documentation/consistency gaps
 
-- backend/README.md exists but is empty.
+- README.md added in wip.
 - Planning docs describe many future phases not yet present in code.
 - Some tests/comments indicate earlier assumptions (e.g., historical note saying PATCH /ready did not exist), but route now exists.

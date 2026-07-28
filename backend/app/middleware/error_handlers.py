@@ -40,7 +40,7 @@ ERROR_MAP = {
     TapeNotReadyError: (409, "Conflict"),
     EmailDeliveryError: (502, "BadGateway"),
     TapeNotSentError: (409, "Conflict"),
-    InvalidVerificationTokenError: (401, "Unauthorized"),
+    InvalidVerificationTokenError: (400, "BadRequest"),
 }
 
 

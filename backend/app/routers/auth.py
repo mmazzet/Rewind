@@ -65,10 +65,10 @@ async def me(
     return user
 
 
-@router.post("/verify-email", response_model=UserResponse)
+@router.post("/verify-email")
 async def verify_email(
     body: VerifyEmailRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    user = await auth_service.verify_email(db, body.token, tape_service)
-    return user
+    await auth_service.verify_email(db, body.token, tape_service)
+    return {"message": "Email verified"}

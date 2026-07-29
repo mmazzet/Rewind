@@ -141,7 +141,6 @@ async def test_verify_email_success(client):
 
     assert response.status_code == 200
     data = response.json()
-    print("DEBUG response:", data)  # DEBUG
     assert data["message"] == "Email verified"
 
 

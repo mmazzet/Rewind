@@ -70,6 +70,10 @@ Scope: current code + tests + docs present in repo
 - session restore via /auth/me on app load
 - protected routes
 - logout action
+- Email verification flow implemented:
+- register page now shows a post-signup confirmation message instead of redirecting immediately
+- verify-email route is wired at /verify-email
+- VerifyEmailPage calls /auth/verify-email and redirects to /inbox on success
 - Tape creation + builder flow implemented:
 - create tape page
 - tape builder page loads tape details
@@ -105,8 +109,6 @@ Scope: current code + tests + docs present in repo
 ### Frontend gaps relative to roadmap docs
 
 - No spotify connect/export UI found.
-- No email verification UI flow found.
-- Phase 7 frontend not yet started: verify-email landing page and post-registration message needed.
 
 ### Documentation/consistency gaps
 

@@ -21,6 +21,7 @@ Every backend step is tested in Postman before moving to the frontend. Every pha
 - Phase 4: complete
 - Phase 5: complete
 - Phase 6: complete
+- Phase 7: complete
 
 ---
 

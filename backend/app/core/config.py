@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     spotify_mock: bool = False
 
     resend_api_key: str | None = None
+    resend_from_email: str | None = None
 
     model_config = {"env_file": ".env"}
 
@@ -32,6 +33,15 @@ def require_resend_credentials() -> str:
     if not settings.resend_api_key:
         raise ValueError("Resend API key not configured. " "Set RESEND_API_KEY in .env")
     return settings.resend_api_key
+
+
+def require_resend_from_email() -> str:
+    """Raise a clear error if the Resend sender address is not configured."""
+    if not settings.resend_from_email:
+        raise ValueError(
+            "Resend sender address not configured. " "Set RESEND_FROM_EMAIL in .env"
+        )
+    return settings.resend_from_email
 
 
 settings = Settings()

@@ -60,6 +60,7 @@ Scope: current code + tests + docs present in repo
 
 - EmailService exists and is called during tape send.
 - Uses Resend client and public tape URL from config.
+- Resend sender address updated to use verified domain em.myname.me. RESEND_FROM_EMAIL added to config and .env.example. Emails now send to any recipient.
 
 ### Frontend implemented
 

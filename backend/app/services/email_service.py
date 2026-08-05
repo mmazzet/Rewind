@@ -3,7 +3,11 @@ import asyncio
 import resend
 from loguru import logger
 
-from app.core.config import require_resend_credentials, settings
+from app.core.config import (
+    require_resend_credentials,
+    require_resend_from_email,
+    settings,
+)
 from app.core.exceptions import EmailDeliveryError
 
 
@@ -17,7 +21,7 @@ class EmailService:
         logger.info("Sending tape email to {}", recipient)
 
         params = {
-            "from": "onboarding@resend.dev",
+            "from": require_resend_from_email(),
             "to": recipient,
             "subject": "Someone made you a tape",
             "html": f"<p>You've got a tape! <a href='{tape_url}'>Listen here</a>.</p>",
@@ -35,7 +39,7 @@ class EmailService:
         logger.info("Sending verification email to {}", recipient)
 
         params = {
-            "from": "onboarding@resend.dev",
+            "from": require_resend_from_email(),
             "to": recipient,
             "subject": "Verify your Rewind email",
             "html": f"<p>Verify your email: <a href='{verify_url}'>Click here</a>.</p>",

@@ -12,3 +12,7 @@ class SpotifyTrack(BaseModel):
 
 class SpotifySearchResponse(BaseModel):
     tracks: list[SpotifyTrack]
+
+
+class SpotifyExportResponse(BaseModel):
+    spotify_playlist_url: str

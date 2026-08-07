@@ -62,6 +62,16 @@ Scope: current code + tests + docs present in repo
 - Uses Resend client and public tape URL from config.
 - Resend sender address updated to use verified domain em.myname.me. RESEND_FROM_EMAIL added to config and .env.example. Emails now send to any recipient.
 
+### Spotify export (backend)
+
+- SpotifyToken model and migration implemented.
+- Implemented routes: GET /spotify/auth, GET /spotify/callback, POST /spotify/export/{tape_id}.
+- OAuth flow (auth -> callback -> token storage) tested end to end.
+- Playlist creation and track addition confirmed working via POST /spotify/export/{tape_id}.
+- Bug fixed: create_playlist was posting tracks to POST /playlists/{id}/tracks, which Spotify
+  removed in its 2026 API migration (returns 403 with no detail). Fixed by switching to
+  POST /playlists/{id}/items, same request body and headers.
+
 ### Frontend implemented
 
 - React + TypeScript + React Query + Zustand + React Router setup is present.
@@ -104,7 +114,6 @@ Scope: current code + tests + docs present in repo
 
 ### Backend/API gaps relative to roadmap docs
 
-- No spotify OAuth/export endpoints found.
 - No observability endpoints/integration found (/metrics, Sentry wiring, CI workflow details not found in app code).
 
 ### Frontend gaps relative to roadmap docs

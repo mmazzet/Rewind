@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     spotify_client_id: str | None = None
     spotify_client_secret: str | None = None
     spotify_mock: bool = False
+    spotify_redirect_uri: str
 
     resend_api_key: str | None = None
     resend_from_email: str | None = None

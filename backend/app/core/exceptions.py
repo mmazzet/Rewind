@@ -74,6 +74,14 @@ class SpotifyUnavailableError(RewindError):
     pass
 
 
+class SpotifyOAuthError(RewindError):
+    pass
+
+
+class SpotifyNotConnectedError(RewindError):
+    pass
+
+
 # --- Email ---
 
 

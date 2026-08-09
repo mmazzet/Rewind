@@ -109,6 +109,8 @@ Scope: current code + tests + docs present in repo
 - Backend integration tests exist for auth, tapes, tracks, spotify search.
 - Backend unit tests exist for auth_service, tape_service, track_service.
 - Test setup includes DB lifecycle fixture and fake spotify/email fixtures.
+- Spotify unit tests complete: test_spotify_service.py covers search_tracks, handle_oauth_callback, export_tape_to_spotify (happy path + all error cases).
+- Spotify integration tests complete: test_spotify.py covers search, auth redirect, callback, and export routes.
 
 ## Appears unfinished or not yet implemented
 

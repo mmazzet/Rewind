@@ -66,6 +66,21 @@ class FakeSpotifyClient:
             }
         }
 
+    def get_auth_url(self) -> str:
+        return "https://accounts.spotify.com/authorize?client_id=fake"
+
+    async def exchange_code_for_tokens(self, code: str) -> dict:
+        return {
+            "access_token": "fake_access_token",
+            "refresh_token": "fake_refresh_token",
+            "expires_in": 3600,
+        }
+
+    async def create_playlist(
+        self, access_token: str, title: str, track_ids: list[str]
+    ) -> str:
+        return "https://open.spotify.com/playlist/fake123"
+
 
 @pytest_asyncio.fixture(autouse=True)
 async def fake_spotify_client():

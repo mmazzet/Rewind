@@ -14,4 +14,4 @@ RUN pip install uv
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN uv sync
 
-CMD ["uv", "run", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uv", "run", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-delay", "1"]

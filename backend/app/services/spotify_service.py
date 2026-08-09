@@ -228,15 +228,15 @@ class SpotifyService:
         tape_repo: TapeRepository,
     ) -> str:
         """Create a Spotify playlist from a tape and return the playlist URL."""
-        token = await token_repo.get_by_user_id(user_id)
-        if not token:
-            raise SpotifyNotConnectedError("Spotify account not connected")
-
         tape = await tape_repo.get_by_id(tape_id)
         if not tape:
             raise TapeNotFoundError("Tape not found")
         if tape.sender_id != user_id:
-            raise NotAuthorisedError("Not authorised to export this tape")
+            raise NotAuthorisedError("Not authorised")
+
+        token = await token_repo.get_by_user_id(user_id)
+        if not token:
+            raise SpotifyNotConnectedError("Spotify account not connected")
 
         track_ids = [t.spotify_track_id for t in tape.tracks]
 

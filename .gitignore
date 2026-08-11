@@ -6,3 +6,5 @@ backend/.env
 node_modules/
 .DS_Store
 AGENTS.md
+project-digest.md
+project-digest.ps1

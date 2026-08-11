@@ -10,6 +10,7 @@ const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
 
 function Nav(): React.ReactElement {
   const setUser = useAuthStore((state) => state.setUser);
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
 
   const handleLogout = useCallback(async () => {
@@ -32,12 +33,15 @@ function Nav(): React.ReactElement {
           New tape
         </NavLink>
       </div>
-      <button
-        onClick={handleLogout}
-        className="text-sm text-gray-500 hover:text-red-500 transition-colors"
-      >
-        Log out
-      </button>
+      <div className="flex items-center gap-4">
+        <span className="text-sm text-gray-500">{user?.email}</span>
+        <button
+          onClick={handleLogout}
+          className="text-sm text-gray-500 hover:text-red-500 transition-colors"
+        >
+          Log out
+        </button>
+      </div>
     </nav>
   );
 }

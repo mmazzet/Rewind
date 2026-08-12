@@ -72,6 +72,11 @@ function PublicTapePage(): React.ReactElement {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-6">
+          {tape.message && (
+            <p className="text-sm text-gray-600 italic border-b border-gray-100 pb-4">
+              "{tape.message}"
+            </p>
+          )}
           <SideTrackList tracks={tape.tracks} side="A" />
           <hr className="border-gray-100" />
           <SideTrackList tracks={tape.tracks} side="B" />

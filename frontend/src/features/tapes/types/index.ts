@@ -13,6 +13,7 @@ export interface Tape {
   cassette_style: CassetteStyle;
   length_minutes: number;
   status: string;
+  message: string | null;
   tracks: Track[];
   created_at: string;
 }

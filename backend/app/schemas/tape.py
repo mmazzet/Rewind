@@ -54,6 +54,7 @@ class PublicTapeResponse(BaseModel):
     cassette_style: str
     length_minutes: int
     status: str
+    message: str | None
     tracks: list[TrackResponse]
     created_at: datetime
 

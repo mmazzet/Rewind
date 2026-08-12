@@ -15,16 +15,24 @@ class EmailService:
     def __init__(self):
         resend.api_key = require_resend_credentials()
 
-    async def send_tape_email(self, recipient: str, public_token: str) -> None:
+    async def send_tape_email(
+        self, recipient: str, public_token: str, message: str | None = None
+    ) -> None:
         tape_url = f"{settings.public_base_url}/tape/{public_token}"
 
         logger.info("Sending tape email to {}", recipient)
 
+        message_html = f"<p><em>{message}</em></p>" if message else ""
+
+        body = (
+            f"{message_html}"
+            f"<p>You've got a tape! <a href='{tape_url}'>Listen here</a>.</p>"
+        )
         params = {
             "from": require_resend_from_email(),
             "to": recipient,
             "subject": "Someone made you a tape",
-            "html": f"<p>You've got a tape! <a href='{tape_url}'>Listen here</a>.</p>",
+            "html": body,
         }
 
         try:

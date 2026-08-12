@@ -96,6 +96,7 @@ async def send_tape(
     await email_service.send_tape_email(
         recipient=recipient_email,
         public_token=public_token,
+        message=message,
     )
 
     # If the recipient already has a verified account, claim the tape immediately.

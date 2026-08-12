@@ -66,6 +66,7 @@ class SentTapeListItem(BaseModel):
     recipient_email: str
     status: TapeStatus
     sent_at: datetime
+    spotify_playlist_url: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

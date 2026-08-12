@@ -16,6 +16,7 @@ import OutboxPage from "@/features/outbox/components/OutboxPage";
 import InboxPage from "@/features/inbox/components/InboxPage";
 import Nav from "@/components/Nav";
 import VerifyEmailPage from "@/features/auth/components/VerifyEmailPage";
+import SpotifyCallbackPage from "@/features/tapes/components/SpotifyCallbackPage";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -55,6 +56,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/spotify/callback" element={<SpotifyCallbackPage />} />
             <Route
               path="/"
               element={

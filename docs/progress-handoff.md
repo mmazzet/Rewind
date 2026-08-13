@@ -103,6 +103,7 @@ Scope: current code + tests + docs present in repo
 - Nav component at src/components/Nav.tsx: links to inbox, outbox, new tape, logout.
 - ProtectedLayout in App.tsx: wraps all protected routes, renders Nav above page content.
 - / redirects to /inbox. Public tape page has no nav.
+- Spotify connect/export UI implemented: Connect Spotify button in outbox, SpotifyCallbackPage handles OAuth redirect, Export to Spotify button creates playlist and shows URL.
 
 ### Tests implemented
 
@@ -120,7 +121,7 @@ Scope: current code + tests + docs present in repo
 
 ### Frontend gaps relative to roadmap docs
 
-- No spotify connect/export UI found.
+- nothing
 
 ### Documentation/consistency gaps
 

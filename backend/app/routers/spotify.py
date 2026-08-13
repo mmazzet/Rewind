@@ -31,6 +31,22 @@ async def spotify_auth(
     return RedirectResponse(url=url)
 
 
+@router.post("/callback")
+async def spotify_callback_post(
+    code: str,
+    user_id: int = Depends(get_user_id_from_cookie),
+    db: AsyncSession = Depends(get_db),
+):
+    """Accept the Spotify auth code from the frontend and exchange it for tokens."""
+    token_repo = SpotifyTokenRepository(db)
+    await spotify_service.handle_oauth_callback(
+        code=code,
+        user_id=user_id,
+        token_repo=token_repo,
+    )
+    return {"status": "connected"}
+
+
 @router.get("/callback")
 async def spotify_callback(
     code: str | None = Query(default=None),

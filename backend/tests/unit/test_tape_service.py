@@ -308,6 +308,7 @@ async def test_send_tape_success(mock_db):
     mock_send_email.assert_awaited_once_with(
         recipient="test@example.com",
         public_token=ANY,
+        message="Made this for you",
     )
 
 

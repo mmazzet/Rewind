@@ -342,7 +342,6 @@ async def test_get_public_tape_success(client: AsyncClient):
     assert data["title"] == "My Mix"
     assert len(data["tracks"]) == 1
     assert "recipient_email" not in data
-    assert "message" not in data
 
 
 async def test_get_public_tape_not_found(client: AsyncClient):

@@ -164,8 +164,6 @@ All endpoints live under `/api/v1/`.
 
 The backend has unit tests for services and integration tests that spin up a real test database. Spotify calls are mocked with a `FakeSpotifyClient` in tests.
 
-
-
 ## Roadmap
 
 - [ ] Phase 6: Email verification + tape claiming
@@ -173,4 +171,3 @@ The backend has unit tests for services and integration tests that spin up a rea
 - [ ] Phase 8: Observability (Sentry, Prometheus, Grafana)
 - [ ] Phase 9: CI/CD with GitHub Actions
 - [ ] Phase 10: Deployment (TBD for backend + Vercel for frontend)
-

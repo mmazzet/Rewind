@@ -1,18 +1,16 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
 
+from app.core.exceptions import (
+    NotAuthorisedError,
+    SideFullError,
+    TapeNotFoundError,
+    TapeNotInDraftError,
+)
 from app.models.tape import TapeStatus
 from app.models.track import TrackSide
 from app.services import track_service
-from app.core.exceptions import (
-    TapeNotFoundError,
-    NotAuthorisedError,
-    TapeNotInDraftError,
-    SideFullError,
-    TrackNotFoundError
-)
 
 
 @pytest.fixture

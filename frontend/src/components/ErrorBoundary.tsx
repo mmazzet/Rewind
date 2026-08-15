@@ -11,7 +11,7 @@ interface ErrorBoundaryState {
   error: unknown;
 }
 
-export class ErrorBoundary extends Component <
+export class ErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {

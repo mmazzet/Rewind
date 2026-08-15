@@ -13,11 +13,6 @@ from app.models.track import TrackSide
 from app.services import track_service
 
 
-@pytest.fixture
-def mock_db():
-    return AsyncMock()
-
-
 @pytest.mark.asyncio
 async def test_create_track_success(mock_db):
     # Arrange: fake track the repository will return

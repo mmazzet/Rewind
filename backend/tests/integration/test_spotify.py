@@ -1,10 +1,8 @@
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from tests.integration.test_tapes import (
-    create_tape,
-    create_track,
-    mark_tape_ready,
+from tests.integration.helpers import (
+    helper_send_tape,
     register_and_login,
 )
 
@@ -115,19 +113,6 @@ async def test_spotify_callback_no_code_redirects(client: AsyncClient):
 
 
 # --- POST /api/v1/spotify/export/{tape_id} ---
-
-
-async def helper_send_tape(client: AsyncClient) -> dict:
-    """Create, fill, and send a tape. Returns the send response."""
-    tape = await create_tape(client)
-    await create_track(client, tape["id"])
-    await mark_tape_ready(client, tape["id"])
-    response = await client.post(
-        f"/api/v1/tapes/{tape['id']}/send",
-        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
-    )
-    assert response.status_code == 200
-    return response.json()
 
 
 async def test_export_tape_success(client: AsyncClient):

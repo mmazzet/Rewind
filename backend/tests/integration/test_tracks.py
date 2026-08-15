@@ -4,7 +4,7 @@ from sqlalchemy import select
 from app.models.tape import Tape, TapeStatus
 from app.models.track import Track
 from tests.integration.conftest import TestSessionLocal
-from tests.integration.test_tapes import create_tape, register_and_login
+from tests.integration.helpers import create_tape, create_track, register_and_login
 
 # --- POST /api/v1/tapes/{tape_id}/tracks ---
 
@@ -157,23 +157,6 @@ async def test_add_track_side_time_limit_exceeded(client: AsyncClient):
 
     assert response.status_code == 422
     assert response.json()["message"] == "Side time limit exceeded"
-
-
-async def create_track(client: AsyncClient, tape_id: int):
-    response = await client.post(
-        f"/api/v1/tapes/{tape_id}/tracks",
-        json={
-            "spotify_track_id": "4uLU6hMCjMI75M1A2tKUQC",
-            "title": "Come Together",
-            "artist": "The Beatles",
-            "duration_seconds": 259,
-            "side": "A",
-            "position": 1,
-        },
-    )
-
-    assert response.status_code == 201
-    return response.json()
 
 
 async def test_remove_track_success(client: AsyncClient):

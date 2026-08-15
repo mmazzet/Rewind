@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest_asyncio
+from argon2 import PasswordHasher
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -103,3 +104,10 @@ async def fake_email_service():
         ),
     ):
         yield mock_send_tape
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def fast_password_hasher():
+    fast_ph = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)
+    with patch("app.services.auth_service.ph", new=fast_ph):
+        yield

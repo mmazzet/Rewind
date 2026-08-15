@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from app.core.exceptions import (
@@ -10,11 +11,6 @@ from app.core.exceptions import (
     PasswordTooShortError,
 )
 from app.services import auth_service
-
-
-@pytest.fixture
-def mock_db():
-    return AsyncMock()
 
 
 @pytest.fixture
@@ -35,7 +31,6 @@ def mock_email_service():
 
 @pytest.mark.asyncio
 async def test_register_success(mock_db, mock_email_service):
-    # Arrange: no existing user, create_user returns a new user
     new_user = MagicMock()
     new_user.id = 1
     new_user.email = "new@example.com"
@@ -48,16 +43,18 @@ async def test_register_success(mock_db, mock_email_service):
             new=AsyncMock(return_value=None),
         ),
         patch("app.services.auth_service.user_repository.create_user", new=mock_create),
+        patch(
+            "app.services.auth_service.ph",
+            new=PasswordHasher(time_cost=1, memory_cost=8, parallelism=1),
+        ),
     ):
-
         result = await auth_service.register(
             mock_db, "new@example.com", "Password123", mock_email_service
         )
 
     assert result.email == "new@example.com"
-    # verify the password was hashed, not stored plain
     call_args = mock_create.call_args
-    actual_password_arg = call_args[0][2]  # third positional argument
+    actual_password_arg = call_args[0][2]
     assert actual_password_arg != "Password123"
     assert actual_password_arg.startswith("$argon2")
 

@@ -1,13 +1,6 @@
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
 
-TEST_DATABASE_URL = "postgresql+asyncpg://rewind:rewind@db:5432/rewind_test"
-_engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
-TestSessionLocal = sessionmaker(
-    bind=_engine, class_=AsyncSession, expire_on_commit=False
-)
+from tests.integration.conftest import TestSessionLocal
 
 
 async def test_register_success(client):

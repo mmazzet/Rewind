@@ -1,51 +1,15 @@
 from httpx import AsyncClient
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
 
 from app.core.exceptions import EmailDeliveryError
-
-TEST_DATABASE_URL = "postgresql+asyncpg://rewind:rewind@db:5432/rewind_test"
-_engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
-TestSessionLocal = sessionmaker(
-    bind=_engine, class_=AsyncSession, expire_on_commit=False
+from tests.integration.conftest import TestSessionLocal
+from tests.integration.helpers import (
+    create_tape,
+    create_track,
+    helper_send_tape,
+    mark_tape_ready,
+    register_and_login,
 )
-
-
-# --- Helper ---
-
-
-async def register_and_login(
-    client: AsyncClient,
-    email: str = "test@example.com",
-    password: str = "Password123",
-):
-    register_response = await client.post(
-        "/api/v1/auth/register",
-        json={"email": email, "password": password},
-    )
-    assert register_response.status_code == 201
-
-    login_response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": email, "password": password},
-    )
-    assert login_response.status_code == 200
-
-    csrf_token = client.cookies.get("csrf_token")
-    assert csrf_token is not None, "CSRF token cookie not set after login"
-    client.headers["X-CSRF-Token"] = csrf_token
-
-
-async def create_tape(client: AsyncClient) -> dict:
-    response = await client.post(
-        "/api/v1/tapes",
-        json={"title": "My Mix", "cassette_style": "classic", "length_minutes": 60},
-    )
-    assert response.status_code == 201
-    return response.json()
-
 
 # --- POST /api/v1/tapes ---
 
@@ -131,28 +95,6 @@ async def test_get_tape_wrong_user(client):
     await register_and_login(client, email="user2@example.com")
     response = await client.get(f"/api/v1/tapes/{tape['id']}")
     assert response.status_code == 403
-
-
-async def create_track(client: AsyncClient, tape_id: int) -> dict:
-    response = await client.post(
-        f"/api/v1/tapes/{tape_id}/tracks",
-        json={
-            "spotify_track_id": "4uLU6hMCjMI75M1A2tKUQC",
-            "title": "Come Together",
-            "artist": "The Beatles",
-            "duration_seconds": 259,
-            "side": "A",
-            "position": 1,
-        },
-    )
-    assert response.status_code == 201
-    return response.json()
-
-
-async def mark_tape_ready(client: AsyncClient, tape_id: int) -> dict:
-    response = await client.patch(f"/api/v1/tapes/{tape_id}/ready")
-    assert response.status_code == 200
-    return response.json()
 
 
 async def test_send_tape_success(client: AsyncClient):
@@ -314,18 +256,6 @@ async def test_send_tape_email_failure_returns_502(
 
 
 # --- GET /api/v1/tapes/public/{public_token} ---
-
-
-async def helper_send_tape(client: AsyncClient) -> dict:
-    tape = await create_tape(client)
-    await create_track(client, tape["id"])
-    await mark_tape_ready(client, tape["id"])
-    response = await client.post(
-        f"/api/v1/tapes/{tape['id']}/send",
-        json={"recipient_email": "friend@example.com", "message": "Enjoy!"},
-    )
-    assert response.status_code == 200
-    return response.json()
 
 
 async def test_get_public_tape_success(client: AsyncClient):

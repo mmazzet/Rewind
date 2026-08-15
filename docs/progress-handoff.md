@@ -113,6 +113,13 @@ Scope: current code + tests + docs present in repo
 - Spotify unit tests complete: test_spotify_service.py covers search_tracks, handle_oauth_callback, export_tape_to_spotify (happy path + all error cases).
 - Spotify integration tests complete: test_spotify.py covers search, auth redirect, callback, and export routes.
 
+### Test suite improvements
+
+Added fast argon2 hasher fixture in integration conftest — cut suite time from 62s to 40s
+Removed duplicate engine/sessionmaker from test_auth.py and test_tapes.py — both now import TestSessionLocal from conftest
+Created tests/integration/helpers.py — single home for register_and_login, create_tape, create_track, mark_tape_ready, helper_send_tape
+Created tests/unit/conftest.py — shared mock_db fixture, removed from individual unit test files
+
 ## Appears unfinished or not yet implemented
 
 ### Backend/API gaps relative to roadmap docs

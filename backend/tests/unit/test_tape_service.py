@@ -15,11 +15,6 @@ from app.models.tape import TapeStatus
 from app.services import tape_service
 
 
-@pytest.fixture
-def mock_db():
-    return AsyncMock()
-
-
 @pytest.mark.asyncio
 async def test_create_tape_success(mock_db):
     # Arrange: fake tape the repository will return

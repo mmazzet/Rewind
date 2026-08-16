@@ -14,8 +14,9 @@ I wanted to build something fun and creative while also practicing enterprise-gr
 - [x] See the cassette label update in real time as you add tracks
 - [x] Send your tape to a friend via email
 - [x] Friends can view the tape without needing an account
-- [ ] Recipients can claim the tape by creating an account (coming soon)
-- [ ] Export tapes to Spotify playlists (coming soon)
+- [x] Track sent and received tapes in your inbox and outbox
+- [x] Recipients claim the tape by creating an account and verifying their email
+- [x] Export tapes to Spotify playlists
 
 ## Tech Stack
 
@@ -74,8 +75,10 @@ JWT_SECRET=your-secret-key-here
 ENV=development
 SPOTIFY_CLIENT_ID=your-spotify-client-id
 SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+SPOTIFY_REDIRECT_URI=http://localhost:8000/api/v1/spotify/callback
 PUBLIC_BASE_URL=http://localhost:5173
 RESEND_API_KEY=your-resend-api-key
+RESEND_FROM_EMAIL=you@example.com
 ```
 
 3. Start the dev environment:
@@ -140,7 +143,7 @@ The cassette is pure CSS, no images. It has 4 themes (classic, chrome, metal, vi
 
 ### Email Integration
 
-Tapes are sent via the Resend API. When you hit send, your friend gets an email with a link to the public tape page.
+Tapes are sent via the Resend API. When you hit send, your friend gets an email with a link to the public tape page. If the recipient already has a verified account, the tape is claimed immediately; otherwise they can register, verify their email, and claim it into their inbox.
 
 ### CSRF Protection
 
@@ -150,13 +153,13 @@ All state-changing requests require an `X-CSRF-Token` header that matches a `csr
 
 All endpoints live under `/api/v1/`.
 
-**Auth** — register, login, logout, and session restore (`GET /auth/me`)
+**Auth** — register, login, logout, email verification, and session restore (`GET /auth/me`)
 
 **Tapes** — create a draft, get a tape, mark ready, send, archive, and list your inbox/outbox. There's also a public endpoint (`GET /tapes/public/{token}`) that doesn't require auth.
 
 **Tracks** — add and remove tracks from a draft tape. Each side has a time limit based on the tape length.
 
-**Spotify** — search endpoint that queries the Spotify API on your behalf.
+**Spotify** — search endpoint that queries the Spotify API on your behalf, plus OAuth connect and playlist export of a tape.
 
 ## Development
 
@@ -166,8 +169,8 @@ The backend has unit tests for services and integration tests that spin up a rea
 
 ## Roadmap
 
-- [ ] Phase 6: Email verification + tape claiming
-- [ ] Phase 7: Spotify OAuth for playlist export
-- [ ] Phase 8: Observability (Sentry, Prometheus, Grafana)
-- [ ] Phase 9: CI/CD with GitHub Actions
-- [ ] Phase 10: Deployment (TBD for backend + Vercel for frontend)
+- [x] Phase 6: Inbox and outbox
+- [x] Phase 7: Email verification and tape claiming
+- [x] Phase 8: Spotify playlist export
+- [ ] Phase 9: Observability and CI/CD
+- [ ] Phase 10: Polish and backlog

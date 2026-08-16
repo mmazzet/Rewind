@@ -10,46 +10,7 @@ from app.core.exceptions import (
     TapeNotFoundError,
 )
 from app.services.spotify_service import SpotifyService
-
-# --- Fake client ---
-
-
-class FakeSpotifyClient:
-    """Fake SpotifyClient for unit tests. Methods return canned data by default.
-    Override return values per test using AsyncMock if needed.
-    """
-
-    async def search(self, query: str) -> dict:
-        return {
-            "tracks": {
-                "items": [
-                    {
-                        "id": "track_1",
-                        "name": "Come Together",
-                        "artists": [{"name": "The Beatles"}],
-                        "album": {"name": "Abbey Road"},
-                        "duration_ms": 259000,
-                        "preview_url": None,
-                    }
-                ]
-            }
-        }
-
-    def get_auth_url(self) -> str:
-        return "https://accounts.spotify.com/authorize?client_id=fake"
-
-    async def exchange_code_for_tokens(self, code: str) -> dict:
-        return {
-            "access_token": "fake_access_token",
-            "refresh_token": "fake_refresh_token",
-            "expires_in": 3600,
-        }
-
-    async def create_playlist(
-        self, access_token: str, title: str, track_ids: list[str]
-    ) -> str:
-        return "https://open.spotify.com/playlist/fake123"
-
+from tests.fakes import FakeSpotifyClient
 
 # --- Fixtures ---
 
@@ -95,11 +56,11 @@ async def test_search_tracks_returns_formatted_results(service):
 
     assert len(results) == 1
     track = results[0]
-    assert track["spotify_track_id"] == "track_1"
-    assert track["title"] == "Come Together"
-    assert track["artist"] == "The Beatles"
-    assert track["album"] == "Abbey Road"
-    assert track["duration_seconds"] == 259
+    assert track["spotify_track_id"] == "mock_1"
+    assert track["title"] == "Mock result for beatles"
+    assert track["artist"] == "Mock Artist"
+    assert track["album"] == "Mock Album"
+    assert track["duration_seconds"] == 200
 
 
 @pytest.mark.asyncio

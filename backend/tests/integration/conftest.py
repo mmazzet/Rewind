@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest_asyncio
 from argon2 import PasswordHasher
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -10,6 +11,7 @@ from sqlalchemy.pool import NullPool
 from app.db.session import Base, get_db
 from app.main import app
 from app.services.spotify_service import spotify_service
+from tests.fakes import FakeSpotifyClient
 
 TEST_DATABASE_URL = "postgresql+asyncpg://rewind:rewind@db:5432/rewind_test"
 
@@ -25,13 +27,23 @@ TestSessionLocal = sessionmaker(
 )
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_database():
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def truncate_tables(setup_database):
+    table_names = ", ".join(table.name for table in Base.metadata.sorted_tables)
+    async with test_engine.begin() as conn:
+        await conn.execute(
+            text(f"TRUNCATE TABLE {table_names} RESTART IDENTITY CASCADE")
+        )
+    yield
 
 
 @pytest_asyncio.fixture
@@ -48,39 +60,6 @@ async def client():
         yield ac
 
     app.dependency_overrides.clear()
-
-
-class FakeSpotifyClient:
-    async def search(self, query: str) -> dict:
-        return {
-            "tracks": {
-                "items": [
-                    {
-                        "id": "mock_1",
-                        "name": f"Mock result for {query}",
-                        "artists": [{"name": "Mock Artist"}],
-                        "album": {"name": "Mock Album"},
-                        "duration_ms": 200000,
-                        "preview_url": None,
-                    }
-                ]
-            }
-        }
-
-    def get_auth_url(self) -> str:
-        return "https://accounts.spotify.com/authorize?client_id=fake"
-
-    async def exchange_code_for_tokens(self, code: str) -> dict:
-        return {
-            "access_token": "fake_access_token",
-            "refresh_token": "fake_refresh_token",
-            "expires_in": 3600,
-        }
-
-    async def create_playlist(
-        self, access_token: str, title: str, track_ids: list[str]
-    ) -> str:
-        return "https://open.spotify.com/playlist/fake123"
 
 
 @pytest_asyncio.fixture(autouse=True)

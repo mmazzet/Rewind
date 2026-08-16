@@ -79,10 +79,11 @@ Priority order, biggest win first:
 2. **Single shared DB engine/sessionmaker** in `tests/integration/conftest.py`.
 3. **Centralize helpers + `FakeSpotifyClient`** (de-duplication; details below).
 4. **Session-scoped schema creation + truncate-between-tests** instead of full
-   rebuild per test (~30s win). (Deferred — keep per-test rebuild for now.)
+   rebuild per test. (Implemented — see status below.)
 5. **`pytest-xdist` parallelism** — tempting but won't work for integration
    tests as-is: workers would clobber each other on the shared DB's
-   create/drop. Needs per-worker DBs. (Deferred.)
+   create/drop. Needs per-worker DBs. (Deferred — not worth the complexity for
+   this project.)
 
 ## De-duplication plan (current scope)
 
@@ -104,3 +105,51 @@ Priority order, biggest win first:
 Verification after changes:
 - `docker compose exec backend bash -lc "cd /workspace/backend && uv run pytest -q"`
 - `uv run pre-commit run --all-files`
+
+## Implementation status (post-fix verification, Aug 2026)
+
+Items 1–4 of the improvement plan were implemented and verified. Timings:
+unit 3.4s (was ~7s), integration ~57s (was 64s after items 1–3, ~225s
+originally). All 52 unit + 72 integration tests pass.
+
+- **1. Fast hashing — implemented correctly.** Integration autouse
+  `fast_password_hasher` fixture patches `app.services.auth_service.ph` with
+  `PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)` (the recommended
+  snippet). Unit `test_register_success` patches the same low-cost hasher
+  instead of a mock — this is fine, arguably better: it keeps the real
+  hash→store→verify round trip while staying fast.
+- **2. Single shared engine/sessionmaker — implemented correctly.**
+  `TEST_DATABASE_URL`/`test_engine`/`TestSessionLocal` now exist only in
+  `tests/integration/conftest.py`; `test_auth.py`, `test_tapes.py`,
+  `test_tracks.py` all import `TestSessionLocal` from conftest. `NullPool`
+  retained.
+- **3. Centralize helpers + FakeSpotifyClient — done.**
+  - `tests/integration/helpers.py` is the single home for
+    `register_and_login`, `create_tape`, `create_track`, `mark_tape_ready`,
+    `helper_send_tape`; all integration tests import from it; the fragile
+    cross-test-file imports are gone. `mock_db` is centralized in
+    `tests/unit/conftest.py` with the three redefinitions removed.
+  - `tests/fakes.py` is the single home for `FakeSpotifyClient`, imported by
+    both `tests/integration/conftest.py` and `tests/unit/test_spotify_service.py`.
+    The fake keeps the query-aware `search` (`"Mock result for {query}"`), so
+    `test_search_tracks_authenticated` still proves the `q` parameter reaches
+    the client. `test_search_tracks_returns_formatted_results` asserts the
+    query-aware values (`mock_1`, `Mock result for beatles`, `Mock Artist`,
+    `Mock Album`, 200s).
+
+Note: the unit copy of `FakeSpotifyClient` previously returned realistic canned
+data ("Come Together", 259s) and the integration copy query-aware data. They
+are now merged into one query-aware fake; the unit test's expected values were
+updated to match. Both copies shared the same interface and response shape, so
+a single fake is sufficient.
+- **4. Session-scoped schema + truncate-between-tests — implemented.**
+  `setup_database` is now `scope="session"` (create_all once, drop_all once);
+  a new autouse `truncate_tables` fixture empties all tables
+  (`TRUNCATE ... RESTART IDENTITY CASCADE`, table list from
+  `Base.metadata.sorted_tables`) before each test. Measured win was ~7s
+  (64s → 57s), smaller than the ~30s originally estimated — the earlier
+  estimate was made while argon2 hashing still dominated the run. The
+  per-test fixture cost dropped from ~450ms (create+drop) to ~110ms
+  (truncate). Point 5 (pytest-xdist) was deliberately not implemented: it
+  needs per-worker databases and the complexity isn't justified for this
+  suite.

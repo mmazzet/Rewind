@@ -276,7 +276,7 @@ Every backend step is tested in Postman before moving to the frontend. Every pha
 3. Add Prometheus and Grafana services to `docker-compose.yml`.
 4. Write GitHub Actions workflow: run pytest on every push, block merge on failure.
 5. Set up Vercel for frontend auto-deploy on merge to `main`.
-6. Set up Digital Ocean Droplet. Configure nginx to proxy to FastAPI. Set up auto-deploy via GitHub Actions.
+6. Set up Render for backend. Set up auto-deploy via GitHub Actions.
 
 ### Done when
 

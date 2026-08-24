@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str
+    ssl_mode: str = "disable"
     jwt_secret: str
     jwt_expiry_days: int = 7
     env: str = "development"
@@ -16,7 +17,7 @@ class Settings(BaseSettings):
     resend_api_key: str | None = None
     resend_from_email: str | None = None
 
-    model_config = {"env_file": ".env"}
+    model_config = {"env_file": ".env", "extra": "ignore"}
 
 
 def require_spotify_credentials() -> tuple[str, str]:

@@ -10,7 +10,8 @@ from app.core.config import settings
 from app.models import Base  # noqa: F401
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+db_url = settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
+config.set_main_option("sqlalchemy.url", db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -31,9 +32,14 @@ def run_migrations_offline() -> None:
 
 
 async def run_migrations_online() -> None:
+    connect_args = {}
+    if settings.ssl_mode == "require":
+        connect_args["ssl"] = True
+
     connectable = create_async_engine(
-        settings.database_url,
+        db_url,
         poolclass=pool.NullPool,
+        connect_args=connect_args,
     )
 
     async with connectable.connect() as connection:

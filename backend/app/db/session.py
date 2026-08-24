@@ -6,6 +6,10 @@ from app.core.config import settings
 # Convert postgresql:// to postgresql+asyncpg://
 DATABASE_URL = settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
 
+connect_args = {}
+if settings.ssl_mode == "require":
+    connect_args["ssl"] = True
+
 engine = create_async_engine(DATABASE_URL, echo=settings.env == "development")
 
 AsyncSessionLocal = sessionmaker(

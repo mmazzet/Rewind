@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { tapesApi } from "../api/tapesApi";
-import type { Tape, Track, TrackSide, SpotifySearchResult } from "../types";
+import type { Tape, TrackSide, SpotifySearchResult } from "../types";
 import { SpotifySearch } from "./SpotifySearch";
 import { TrackList } from "./TrackList";
 import { toast } from "react-hot-toast";

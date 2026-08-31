@@ -8,6 +8,13 @@ class Settings(BaseSettings):
     jwt_expiry_days: int = 7
     env: str = "development"
     public_base_url: str
+    cors_origins: str = "http://localhost:5173"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [
+            origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
+        ]
 
     spotify_client_id: str | None = None
     spotify_client_secret: str | None = None

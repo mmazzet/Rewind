@@ -134,7 +134,9 @@ async def test_verify_email_success(client):
 
     assert response.status_code == 200
     data = response.json()
-    assert data["message"] == "Email verified"
+    assert data["email"] == "test@example.com"
+    assert "id" in data
+    assert "password_hash" not in data
 
 
 async def test_verify_email_invalid_token(client):

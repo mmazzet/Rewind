@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://rewind-backend-u989.onrender.com/api/$1" },
     { "source": "/((?!favicon.svg|cassette.png|icons.svg|assets).*)", "destination": "/index.html" }
   ]
 }

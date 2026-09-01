@@ -21,7 +21,8 @@ export const authApi = {
     return response.data;
   },
 
-  verifyEmail: async (token: string): Promise<void> => {
-    await apiClient.post("/auth/verify-email", { token });
+  verifyEmail: async (token: string): Promise<User> => {
+    const response = await apiClient.post<User>("/auth/verify-email", { token });
+    return response.data;
   },
 };

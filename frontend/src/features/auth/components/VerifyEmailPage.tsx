@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authApi } from "../api/authApi";
+import useAuthStore from "@/store/authStore";
 
 type Status = "verifying" | "success" | "error";
 
 function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
   const [status, setStatus] = useState<Status>("verifying");
 
   useEffect(() => {
@@ -19,7 +21,8 @@ function VerifyEmailPage() {
 
     authApi
       .verifyEmail(token)
-      .then(() => {
+      .then((user) => {
+        setUser(user);
         setStatus("success");
         setTimeout(() => navigate("/inbox"), 2000);
       })

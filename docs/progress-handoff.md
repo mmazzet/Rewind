@@ -1,6 +1,6 @@
 # Rewind progress handoff (repo snapshot)
 
-Date: 2026-07-14
+Date: 2026-09-02
 Audience: another AI assistant resuming implementation
 Scope: current code + tests + docs present in repo
 
@@ -21,10 +21,9 @@ Scope: current code + tests + docs present in repo
 - JWT cookie auth is implemented (httpOnly access_token cookie).
 - CSRF token cookie + middleware validation is implemented for authenticated state-changing requests.
 - Email verification flow implemented: verification token generated on register, stored on User, sent via EmailService.
-- POST /auth/verify-email implemented: validates token, marks user verified, triggers tape claiming.
+- POST /auth/verify-email implemented: validates token, marks user verified, triggers tape claiming, sets access_token + csrf_token cookies, returns UserResponse (auto-login on verify).
 - Tape claiming implemented in TapeService: claim_tapes_for_email sets recipient_id and status to claimed for all sent tapes matching the user's email.
 - Second claiming trigger implemented in send_tape: if recipient already has a verified account, tape is claimed immediately at send time.
-- POST /auth/verify-email now returns {"message": "Email verified"} instead of user object, matching API design.
 
 ### Tape domain (backend)
 
@@ -84,7 +83,7 @@ Scope: current code + tests + docs present in repo
 - Email verification flow implemented:
 - register page now shows a post-signup confirmation message instead of redirecting immediately
 - verify-email route is wired at /verify-email
-- VerifyEmailPage calls /auth/verify-email and redirects to /inbox on success
+- VerifyEmailPage calls /auth/verify-email, stores returned user in auth state via setUser(), then redirects to /inbox on success
 - Tape creation + builder flow implemented:
 - create tape page
 - tape builder page loads tape details
@@ -104,6 +103,14 @@ Scope: current code + tests + docs present in repo
 - ProtectedLayout in App.tsx: wraps all protected routes, renders Nav above page content.
 - / redirects to /inbox. Public tape page has no nav.
 - Spotify connect/export UI implemented: Connect Spotify button in outbox, SpotifyCallbackPage handles OAuth redirect, Export to Spotify button creates playlist and shows URL.
+
+### Deployment
+
+- Frontend deployed on Vercel. Backend on Render. Database on Neon.
+- Production is a cross-site setup (Vercel frontend → Render backend). With SameSite=lax cookies the browser does not send cookies cross-site on XHR/fetch, so cookie-based auth does not persist across page loads without a same-origin proxy.
+- Local dev avoids this because the Vite dev server proxies /api to the backend on the same origin.
+- Production fix: Vercel project-level routing rule required to proxy /api/* → Render backend (same-origin). Routing rules are managed via the Vercel Dashboard or CLI (`vercel routes`), not in the repo, so the backend URL stays out of Git. The SPA rewrite in `vercel.json` should only contain the client-side catch-all.
+- `VITE_API_URL` env var in Vercel must be removed/empty so the frontend calls /api/v1 same-origin; the proxy then forwards to Render.
 
 ### Tests implemented
 

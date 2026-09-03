@@ -272,6 +272,7 @@ async def test_get_public_tape_success(client: AsyncClient):
     assert data["title"] == "My Mix"
     assert len(data["tracks"]) == 1
     assert "recipient_email" not in data
+    assert data["spotify_playlist_url"] is None
 
 
 async def test_get_public_tape_not_found(client: AsyncClient):
@@ -499,3 +500,5 @@ async def test_send_tape_claims_immediately_for_verified_recipient(client):
     tapes = inbox_response.json()
     assert len(tapes) == 1
     assert tapes[0]["title"] == "Mix for Maria"
+    assert tapes[0]["public_token"] is not None
+    assert tapes[0]["spotify_playlist_url"] is None

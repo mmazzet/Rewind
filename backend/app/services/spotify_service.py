@@ -246,6 +246,8 @@ class SpotifyService:
             track_ids=track_ids,
         )
 
+        await tape_repo.set_spotify_playlist_url(tape, playlist_url)
+
         logger.info("Spotify playlist created for tape {}", tape_id)
         return playlist_url
 

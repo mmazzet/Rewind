@@ -44,6 +44,7 @@ def mock_tape_repo():
     tape.sender_id = 42
     tape.tracks = [MagicMock(spotify_track_id="track_1")]
     repo.get_by_id = AsyncMock(return_value=tape)
+    repo.set_spotify_playlist_url = AsyncMock()
     return repo
 
 
@@ -106,6 +107,12 @@ async def test_export_tape_returns_playlist_url(
     )
 
     assert url == "https://open.spotify.com/playlist/fake123"
+
+    # The URL should be persisted on the tape
+    mock_tape_repo.set_spotify_playlist_url.assert_awaited_once_with(
+        mock_tape_repo.get_by_id.return_value,
+        "https://open.spotify.com/playlist/fake123",
+    )
 
 
 @pytest.mark.asyncio

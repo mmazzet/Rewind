@@ -59,6 +59,14 @@ class TapeRepository:
         await self.db.refresh(tape)
         return tape
 
+    async def set_spotify_playlist_url(
+        self, tape: Tape, spotify_playlist_url: str
+    ) -> Tape:
+        tape.spotify_playlist_url = spotify_playlist_url
+        await self.db.commit()
+        await self.db.refresh(tape)
+        return tape
+
     async def send_tape(
         self,
         tape: Tape,

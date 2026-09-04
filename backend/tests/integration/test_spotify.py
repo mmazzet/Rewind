@@ -140,6 +140,12 @@ async def test_export_tape_success(client: AsyncClient):
         == "https://open.spotify.com/playlist/fake123"
     )
 
+    # The playlist URL should be persisted on the tape so recipients can see it
+    sent_response = await client.get("/api/v1/tapes/sent")
+    assert sent_response.status_code == 200
+    sent_tapes = sent_response.json()
+    assert sent_tapes[0]["spotify_playlist_url"] == "https://open.spotify.com/playlist/fake123"
+
 
 async def test_export_tape_not_authenticated(client: AsyncClient):
     response = await client.post("/api/v1/spotify/export/1")

@@ -16,6 +16,7 @@ export interface Tape {
   message: string | null;
   tracks: Track[];
   created_at: string;
+  spotify_playlist_url: string | null;
 }
 
 export interface Track {

@@ -57,6 +57,7 @@ class PublicTapeResponse(BaseModel):
     message: str | None
     tracks: list[TrackResponse]
     created_at: datetime
+    spotify_playlist_url: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -79,5 +80,7 @@ class ReceivedTapeListItem(BaseModel):
     message: str | None
     status: TapeStatus
     sent_at: datetime
+    public_token: str | None = None
+    spotify_playlist_url: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

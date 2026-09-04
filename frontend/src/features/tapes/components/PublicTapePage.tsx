@@ -82,6 +82,17 @@ function PublicTapePage(): React.ReactElement {
           <SideTrackList tracks={tape.tracks} side="B" />
         </div>
 
+        {tape.spotify_playlist_url && (
+          <a
+            href={tape.spotify_playlist_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-center rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 transition-colors"
+          >
+            Listen on Spotify →
+          </a>
+        )}
+
         <div className="text-center">
           <Link
             to="/register"

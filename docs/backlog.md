@@ -101,3 +101,4 @@ Currently "claimed" just means the recipient verified their email. Make it refle
 # 🔧 New / Fix Items
 
 *(Add new backlog items below — suggestions you want tracked.)*
+## Fix navbar with hamburger menu for smaller screen and mobile view

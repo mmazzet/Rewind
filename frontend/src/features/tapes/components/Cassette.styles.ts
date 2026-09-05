@@ -41,14 +41,15 @@ export const DEFAULT_THEME = CASSETTE_THEMES.classic;
 
 export const cassetteStyles = {
   shell: {
-    width: "380px",
-    height: "240px",
+    width: "min(380px, 92vw)",
+    height: "min(240px, 58vw)",
+    maxWidth: "100%",
+    boxSizing: "border-box" as const,
     borderRadius: "10px",
     boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
     display: "flex",
     flexDirection: "column" as const,
     overflow: "hidden",
-    boxSizing: "border-box" as const,
   },
   label: {
     margin: "10px 10px 0 10px",

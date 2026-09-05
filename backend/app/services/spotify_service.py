@@ -133,7 +133,7 @@ class SpotifyClient:
     async def create_playlist(
         self, access_token: str, title: str, track_ids: list[str]
     ) -> str:
-        """Create a public Spotify playlist and return its URL."""
+        """Create a private Spotify playlist and return its URL."""
         headers = {"Authorization": f"Bearer {access_token}"}
 
         async with httpx.AsyncClient() as client:

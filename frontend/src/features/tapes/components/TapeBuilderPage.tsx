@@ -78,7 +78,7 @@ export function TapeBuilderPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 gap-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 gap-6 px-4 overflow-x-hidden">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow">
         <h1 className="text-2xl font-bold mb-2">{tape.title}</h1>
         <p className="text-sm text-gray-500 mb-1">

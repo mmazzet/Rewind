@@ -12,6 +12,22 @@ Project-wide backlog of features, improvements, and fixes for Rewind.
 
 # ✅ Done
 
+## Tape Builder: Show Track and Side Durations
+
+**Status:** Done
+
+The builder now shows per-track durations plus per-side used / total / remaining time.
+
+- [x] Frontend: per-track duration next to each track title (`frontend/src/features/tapes/components/TrackList.tsx`)
+- [x] Frontend: per-side used / total / remaining time, e.g. `15:34 / 30:00 used · 14:26 remaining`
+- [x] `formatDuration()` helper converts seconds to `m:ss`
+- [x] Long track titles wrap; Remove button retained
+- [x] Verify `npm run build` passes
+
+**Note:** The mobile limitation during search remains — the added-tracks list / remaining time is still not visible while searching. Tracked under "Prevent accidental duplicate track selection on mobile."
+
+---
+
 ## Recipient Experience: Clickable Inbox Cards → Tape Detail View
 
 **Status:** Done
@@ -179,20 +195,6 @@ Search results currently show only title + artist. The API already returns `albu
 - [ ] *(optional)* raise search result count above 10 (`limit: 10` at `backend/app/services/spotify_service.py:79`)
 
 **Note:** Spotify has no structured "version" field (remix/live/deluxe appear inline in the track name) — don't attempt extraction.
-
----
-
-## Show track / side durations in the tape builder
-
-**Status:** Not started
-
-While building a tape the user can't easily see how much space is used. Add duration info (all data already exists in the DB as `duration_seconds`).
-
-- [ ] Frontend: show per-track duration next to each track title (`frontend/src/features/tapes/components/TrackList.tsx`)
-- [ ] Frontend: show per-side used/total time (instead of only "X:XX remaining"), e.g. "34:20 / 45:00"
-- [ ] *(optional, later)* progress bar / total tape runtime — skip for now
-
-**Note:** On mobile, screen estate is limited during search — the added-tracks list / remaining time isn't visible while searching (ties into the duplicate-selection fix, item 3).
 
 ---
 

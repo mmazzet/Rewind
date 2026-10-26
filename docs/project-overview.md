@@ -29,7 +29,7 @@ A user adds a song and watches its title appear on the cassette label in real ti
 - User registration and login (JWT auth)
 - Cassette creation: style selection, length (60 or 90 min), song search via Spotify API
 - Side A / Side B split: 30 min each for a 60-min tape, 45 min each for a 90-min tape
-- Live time remaining display per side as tracks are added
+- Live per-side used / total / remaining time and per-track durations as tracks are added
 - Cassette label: song titles rendered in real time in a retro Google Font
 - Public tape URL: anyone can view a sent tape without an account
 - Optional account creation for recipients: save tapes, send their own

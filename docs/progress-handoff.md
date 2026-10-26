@@ -1,6 +1,6 @@
 # Rewind progress handoff (repo snapshot)
 
-Date: 2026-09-02
+Date: 2026-10-25
 Audience: another AI assistant resuming implementation
 Scope: current code + tests + docs present in repo
 
@@ -89,7 +89,7 @@ Scope: current code + tests + docs present in repo
 - tape builder page loads tape details
 - spotify search (debounced)
 - add/remove tracks on side A/B
-- side remaining time display
+- per-track durations and per-side used / total / remaining time display (`TrackList.tsx`)
 - mark-as-ready button
 - public tape page route/component
 - send tape flow (recipient email + optional message, success link, copy button)
